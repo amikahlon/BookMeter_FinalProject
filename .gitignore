@@ -1,0 +1,36 @@
+# Ignore Android Studio specific files
+*.iml
+/.idea/
+/.idea/caches/
+/.idea/libraries/
+/.idea/modules.xml
+/.idea/workspace.xml
+/.idea/navEditor.xml
+/.idea/assetWizardSettings.xml
+
+# Ignore Gradle-related files
+.gradle/
+/build/
+/local.properties
+/.gradle/
+/captures/
+/output.json
+/navigation.json
+/.cxx/
+/externalNativeBuild/
+
+# Ignore Mac system files
+.DS_Store
+
+# Ignore APKs and logs
+*.apk
+*.log
+
+# Ignore Node.js dependencies (אם אתה משתמש ב-React Native או כלים כמו eslint וכו')
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# Ignore generated files
+gen/
+bin/
