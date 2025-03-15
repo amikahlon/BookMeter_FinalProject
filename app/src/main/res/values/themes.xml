@@ -1,9 +1,7 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <!-- Base application theme. -->
-    <style name="Base.Theme.BookMeter" parent="Theme.Material3.DayNight.NoActionBar">
-        <!-- Customize your light theme here. -->
-        <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
+    <!-- Base application theme using Material 3 -->
+    <style name="Theme.BookMeter" parent="Theme.Material3.DayNight.NoActionBar">
+        <!-- Customize Material 3 colors -->
+        <item name="colorPrimary">@color/primaryColor</item>
     </style>
-
-    <style name="Theme.BookMeter" parent="Base.Theme.BookMeter" />
 </resources>
