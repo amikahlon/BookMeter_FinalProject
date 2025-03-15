@@ -1,11 +1,17 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
+    id ("androidx.navigation.safeargs")
+    id("com.google.gms.google-services")
+
 }
 
 android {
+    buildFeatures {
+        viewBinding = true
+    }
     namespace = "com.example.bookmeter"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "com.example.bookmeter"
@@ -42,7 +48,23 @@ dependencies {
     implementation(libs.material)
     implementation(libs.androidx.activity)
     implementation(libs.androidx.constraintlayout)
+    implementation(libs.firebase.firestore.ktx)
+    implementation(libs.firebase.auth.ktx)
+    implementation(libs.androidx.navigation.fragment.ktx)
+    implementation(libs.androidx.navigation.ui.ktx)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
+    implementation(platform(libs.firebase.bom))
+
+
+    implementation(libs.firebase.analytics)
+    implementation(libs.play.services.auth)
+
+    implementation (libs.firebase.auth)
+    implementation (libs.firebase.firestore)
+
+    implementation (libs.material)
+
+
 }

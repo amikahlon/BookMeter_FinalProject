@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/loginFragment">
+
+    <!-- מסך ההתחברות -->
+    <fragment
+        android:id="@+id/loginFragment"
+        android:name="com.example.bookmeter.fragments.LoginFragment"
+        android:label="Login"
+        tools:layout="@layout/fragment_login">
+
+        <argument
+            android:name="showSnackbar"
+            app:argType="boolean"
+            android:defaultValue="false" />
+
+        <action
+            android:id="@+id/action_loginFragment_to_registerFragment"
+            app:destination="@id/registerFragment"/>
+
+        <action
+            android:id="@+id/action_loginFragment_to_dashboardFragment"
+            app:destination="@id/dashboardFragment">
+            <argument android:name="userName" app:argType="string" />
+            <argument android:name="showSnackbar" app:argType="boolean" android:defaultValue="false" />
+        </action>
+    </fragment>
+
+    <!-- מסך הרשמה -->
+    <fragment
+        android:id="@+id/registerFragment"
+        android:name="com.example.bookmeter.fragments.RegisterFragment"
+        android:label="Register"
+        tools:layout="@layout/fragment_register">
+
+        <action
+            android:id="@+id/action_registerFragment_to_dashboardFragment"
+            app:destination="@id/dashboardFragment">
+            <argument android:name="userName" app:argType="string" />
+            <argument android:name="showSnackbar" app:argType="boolean" android:defaultValue="true" />
+        </action>
+
+        <action
+            android:id="@+id/action_registerFragment_to_loginFragment"
+            app:destination="@id/loginFragment">
+            <argument android:name="showSnackbar" app:argType="boolean" android:defaultValue="false" />
+        </action>
+    </fragment>
+
+    <!-- מסך הדשבורד -->
+    <fragment
+        android:id="@+id/dashboardFragment"
+        android:name="com.example.bookmeter.fragments.DashboardFragment"
+        android:label="Dashboard"
+        tools:layout="@layout/fragment_dashboard">
+
+        <argument android:name="userName" app:argType="string" android:defaultValue="User" />
+        <argument android:name="showSnackbar" app:argType="boolean" android:defaultValue="false" />
+
+        <action
+            android:id="@+id/action_dashboardFragment_to_loginFragment"
+            app:destination="@id/loginFragment">
+            <argument android:name="showSnackbar" app:argType="boolean" android:defaultValue="false" />
+        </action>
+
+
+    </fragment>
+
+</navigation>
