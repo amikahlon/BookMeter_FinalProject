@@ -43,7 +43,7 @@
             app:destination="@id/loginFragment" />
     </fragment>
 
-    <!-- Dashboard Screen -->
+    <!-- Dashboard Screen (Main Screen) -->
     <fragment
         android:id="@+id/dashboardFragment"
         android:name="com.example.bookmeter.fragments.DashboardFragment"
@@ -56,6 +56,27 @@
         <action
             android:id="@+id/action_dashboardFragment_to_loginFragment"
             app:destination="@id/loginFragment" />
+        <action
+            android:id="@+id/action_dashboardFragment_to_profileFragment"
+            app:destination="@id/profileFragment" />
+    </fragment>
+
+    <!-- Profile Screen -->
+    <fragment
+        android:id="@+id/profileFragment"
+        android:name="com.example.bookmeter.fragments.ProfileFragment"
+        android:label="My Profile"
+        tools:layout="@layout/fragment_profile">
+        <argument
+            android:name="showSnackbar"
+            app:argType="boolean"
+            android:defaultValue="false" />
+        <action
+            android:id="@+id/action_profileFragment_to_loginFragment"
+            app:destination="@id/loginFragment" />
+        <action
+            android:id="@+id/action_profileFragment_to_dashboardFragment"
+            app:destination="@id/dashboardFragment" />
     </fragment>
 
 </navigation>

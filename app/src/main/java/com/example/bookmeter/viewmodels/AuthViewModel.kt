@@ -126,15 +126,32 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun logout(onComplete: (Boolean, String?) -> Unit) {
-        viewModelScope.launch {
-            try {
-                auth.signOut()
-                userRepository.clearAllUsers()
-                _user.postValue(null)
-                onComplete(true, null)
-            } catch (e: Exception) {
-                onComplete(false, e.message)
+        _isLoading.value = true
+        try {
+            // First sign out from Firebase
+            auth.signOut()
+            
+            // Then clear local data in a coroutine
+            viewModelScope.launch {
+                try {
+                    // Clear user data from Room database
+                    userRepository.clearAllUsers()
+                    
+                    // Update LiveData values on the main thread
+                    _user.postValue(null)
+                    _currentUser.postValue(null)
+                    
+                    // Only now report completion
+                    _isLoading.postValue(false)
+                    onComplete(true, null)
+                } catch (e: Exception) {
+                    _isLoading.postValue(false)
+                    onComplete(false, e.message ?: "Error clearing local data")
+                }
             }
+        } catch (e: Exception) {
+            _isLoading.postValue(false)
+            onComplete(false, e.message ?: "Error during logout")
         }
     }
 

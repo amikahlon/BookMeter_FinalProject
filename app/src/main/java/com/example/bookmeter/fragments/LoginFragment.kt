@@ -90,7 +90,7 @@ class LoginFragment : Fragment() {
 
             if (!validateInput(email, password)) return@setOnClickListener
 
-            authViewModel.loginUser(email, password) { success, message ->
+            authViewModel.loginUser(email, password) { success, message -> 
                 if (!isAdded) return@loginUser
 
                 if (success) {
