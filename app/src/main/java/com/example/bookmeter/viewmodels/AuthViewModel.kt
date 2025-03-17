@@ -1,11 +1,13 @@
 package com.example.bookmeter.viewmodels
 
 import android.app.Application
+import android.net.Uri
 import androidx.lifecycle.*
 import com.example.bookmeter.model.User
 import com.example.bookmeter.repository.UserRepository
 import com.example.bookmeter.room.AppDatabase
 import com.example.bookmeter.room.UserEntity
+import com.example.bookmeter.utils.StorageHelper
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.firestore.FirebaseFirestore
@@ -46,26 +48,57 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
         auth.removeAuthStateListener(authListener)
     }
 
-    fun registerUser(name: String, email: String, password: String, onComplete: (Boolean, String?) -> Unit) {
+    fun registerUser(
+        name: String, 
+        email: String, 
+        password: String, 
+        profileImageUri: Uri?,
+        favoriteGenres: List<String>,
+        onComplete: (Boolean, String?) -> Unit
+    ) {
         _isLoading.value = true
         auth.createUserWithEmailAndPassword(email, password)
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
                     val firebaseUser = auth.currentUser
                     if (firebaseUser != null) {
-                        val userModel = User(uid = firebaseUser.uid, name = name, email = email)
-                        db.collection("users").document(firebaseUser.uid)
-                            .set(userModel)
-                            .addOnSuccessListener {
-                                _user.postValue(userModel)
-                                saveUserToRoom(firebaseUser.uid, name)
-                                _isLoading.postValue(false)
-                                onComplete(true, null)
+                        // Launch coroutine to handle the image upload if needed
+                        viewModelScope.launch {
+                            var profilePictureUrl = ""
+                            
+                            // Upload the profile image if provided
+                            if (profileImageUri != null) {
+                                profilePictureUrl = StorageHelper.uploadProfileImage(
+                                    profileImageUri, 
+                                    firebaseUser.uid
+                                ) ?: ""
                             }
-                            .addOnFailureListener { e ->
-                                _isLoading.postValue(false)
-                                onComplete(false, e.message)
-                            }
+                            
+                            // Create user model with all the new fields
+                            val userModel = User(
+                                uid = firebaseUser.uid,
+                                name = name,
+                                email = email,
+                                profilePictureUrl = profilePictureUrl,
+                                favoriteGenres = favoriteGenres,
+                                wishlistBooks = listOf(),  // Empty wishlist for new users
+                                readBooks = listOf()       // Empty read books for new users
+                            )
+                            
+                            // Save user to Firestore
+                            db.collection("users").document(firebaseUser.uid)
+                                .set(userModel)
+                                .addOnSuccessListener {
+                                    _user.postValue(userModel)
+                                    saveUserToRoom(firebaseUser.uid, name, profilePictureUrl)
+                                    _isLoading.postValue(false)
+                                    onComplete(true, null)
+                                }
+                                .addOnFailureListener { e ->
+                                    _isLoading.postValue(false)
+                                    onComplete(false, e.message)
+                                }
+                        }
                     } else {
                         _isLoading.postValue(false)
                         onComplete(false, "Failed to get current user after registration")
@@ -112,7 +145,9 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
                 if (document.exists()) {
                     val userModel = document.toObject(User::class.java)
                     _user.postValue(userModel)
-                    userModel?.let { saveUserToRoom(it.uid, it.name) }
+                    userModel?.let { 
+                        saveUserToRoom(it.uid, it.name, it.profilePictureUrl)
+                    }
                 } else {
                     _user.postValue(null)
                 }
@@ -122,9 +157,9 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
             }
     }
 
-    private fun saveUserToRoom(uid: String, name: String) {
+    private fun saveUserToRoom(uid: String, name: String, profilePictureUrl: String = "") {
         viewModelScope.launch {
-            userRepository.insertUser(UserEntity(uid, name))
+            userRepository.insertUser(UserEntity(uid, name, profilePictureUrl))
         }
     }
 }

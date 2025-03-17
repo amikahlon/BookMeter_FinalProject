@@ -1,7 +1,6 @@
 package com.example.bookmeter.fragments
 
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -10,6 +9,7 @@ import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
 import com.example.bookmeter.R
 import com.example.bookmeter.databinding.FragmentLoginBinding
+import com.example.bookmeter.utils.LoadingStateManager
 import com.example.bookmeter.utils.SnackbarHelper
 import com.example.bookmeter.viewmodels.AuthViewModel
 
@@ -17,6 +17,7 @@ class LoginFragment : Fragment() {
     private var _binding: FragmentLoginBinding? = null
     private val binding get() = _binding!!
     private val authViewModel: AuthViewModel by activityViewModels()
+    private lateinit var loadingStateManager: LoadingStateManager
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -30,31 +31,53 @@ class LoginFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        // Initialize loading state manager
+        loadingStateManager = LoadingStateManager(this)
+        loadingStateManager.init(binding.root, R.id.loginContent)
+
+        // Show initial loading while checking for user
+        loadingStateManager.showLoading("Checking login status...")
+
         setupObservers()
         setupClickListeners()
         checkLocalUser()
     }
 
     private fun checkLocalUser() {
+        // If there's a user in Room, navigate to dashboard immediately
         authViewModel.localUser.observe(viewLifecycleOwner) { localUser ->
             if (localUser != null && isAdded) {
-                logLocalUserDetails(localUser)
                 if (findNavController().currentDestination?.id == R.id.loginFragment) {
                     findNavController().navigate(R.id.action_loginFragment_to_dashboardFragment)
                 }
+            } else {
+                // No user found, hide loading screen
+                loadingStateManager.hideLoading()
             }
         }
     }
 
-    private fun logLocalUserDetails(localUser: Any) {
-        Log.d("LoginFragment", "Local User Details:\n$localUser")
-    }
-
     private fun setupObservers() {
         authViewModel.isLoading.observe(viewLifecycleOwner) { isLoading ->
-            binding.progressBar.visibility = if (isLoading) View.VISIBLE else View.GONE
+            if (isLoading) {
+                loadingStateManager.showLoading("Signing in...")
+            } else {
+                if (authViewModel.currentUser.value == null) {
+                    loadingStateManager.hideLoading()
+                }
+            }
+            
+            // Disable buttons during loading
             binding.btnSignIn.isEnabled = !isLoading
             binding.btnSignUp.isEnabled = !isLoading
+        }
+
+        // Observe Firebase user
+        authViewModel.currentUser.observe(viewLifecycleOwner) { firebaseUser ->
+            if (firebaseUser != null && isAdded) {
+                // Once Firebase auth is complete, the ViewModel will fetch user data 
+                loadingStateManager.updateLoadingMessage("Loading your profile...")
+            }
         }
     }
 
@@ -71,7 +94,8 @@ class LoginFragment : Fragment() {
                 if (!isAdded) return@loginUser
 
                 if (success) {
-                    Log.d("LoginFragment", "Login successful, waiting for local user data...")
+                    // Navigation will be handled by localUser observer in MainActivity
+                    // or in checkLocalUser() once the user data is saved to Room
                 } else {
                     binding.tvErrorMessage.text = message ?: "Login failed"
                     binding.tvErrorMessage.visibility = View.VISIBLE
