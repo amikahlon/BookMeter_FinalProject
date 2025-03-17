@@ -1,15 +1,11 @@
 package com.example.bookmeter
 
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
 import com.example.bookmeter.databinding.ActivityMainBinding
-import com.example.bookmeter.fragments.DashboardFragmentDirections
-import com.example.bookmeter.fragments.LoginFragmentDirections
-import com.example.bookmeter.fragments.RegisterFragmentDirections
 import com.example.bookmeter.viewmodels.AuthViewModel
 
 class MainActivity : AppCompatActivity() {
@@ -33,41 +29,29 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun observeAuthState() {
-        authViewModel.currentUser.observe(this) { user ->
-            if (!::navController.isInitialized || navController.currentDestination == null) return@observe
-
-            val currentDestId = navController.currentDestination?.id ?: return@observe
-
-            if (user != null) {
-                // המשתמש מחובר, מונעים ניווט נוסף אם כבר במסך המתאים
-                if ((currentDestId == R.id.loginFragment || currentDestId == R.id.registerFragment) && currentDestId != R.id.dashboardFragment) {
-                    try {
-                        val userName = authViewModel.user.value?.name ?: "User"
-                        val action = when (currentDestId) {
-                            R.id.loginFragment -> LoginFragmentDirections.actionLoginFragmentToDashboardFragment("demo")
-                            R.id.registerFragment -> RegisterFragmentDirections.actionRegisterFragmentToDashboardFragment("demo")
-                            else -> null
-                        }
-                        action?.let { navController.navigate(it) }
-                    } catch (e: Exception) {
-                        Log.e("MainActivity", "Error navigating: ${e.message}", e)
-                    }
+        // Check if user is already logged in via Room
+        authViewModel.localUser.observe(this) { localUser ->
+            val currentDestId = navController.currentDestination?.id
+            
+            if (localUser != null) {
+                // User exists in Room, ensure we're on dashboard if not already
+                if (currentDestId == R.id.loginFragment) {
+                    navController.navigate(R.id.action_loginFragment_to_dashboardFragment)
+                } else if (currentDestId == R.id.registerFragment) {
+                    navController.navigate(R.id.action_registerFragment_to_dashboardFragment)
                 }
             } else {
-                // המשתמש לא מחובר, מונעים ניווט נוסף אם כבר במסך המתאים
+                // If no user in Room and we're on dashboard, go to login
                 if (currentDestId == R.id.dashboardFragment) {
-                    try {
-                        val action = DashboardFragmentDirections.actionDashboardFragmentToLoginFragment()
-                        navController.navigate(action)
-                    } catch (e: Exception) {
-                        Log.e("MainActivity", "Error navigating: ${e.message}", e)
-                    }
+                    navController.navigate(R.id.action_dashboardFragment_to_loginFragment)
                 }
             }
         }
-    }
 
-    override fun onSupportNavigateUp(): Boolean {
-        return navController.navigateUp() || super.onSupportNavigateUp()
+        // Observe Firebase authentication state as backup
+        authViewModel.currentUser.observe(this) { firebaseUser ->
+            // Firebase state changes will ultimately update Room via the ViewModel
+            // So we primarily rely on the localUser observer above
+        }
     }
 }

@@ -95,7 +95,6 @@
         android:layout_marginTop="12dp"
         app:layout_constraintTop_toBottomOf="@id/btnRegister"/>
 
-    <!-- Circular Progress Indicator במקום Linear -->
     <com.google.android.material.progressindicator.CircularProgressIndicator
         android:id="@+id/progressBar"
         android:layout_width="48dp"
