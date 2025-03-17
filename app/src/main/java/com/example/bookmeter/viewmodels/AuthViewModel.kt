@@ -1,16 +1,21 @@
 package com.example.bookmeter.viewmodels
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
+import android.app.Application
+import androidx.lifecycle.*
+import com.example.bookmeter.model.User
+import com.example.bookmeter.repository.UserRepository
+import com.example.bookmeter.room.AppDatabase
+import com.example.bookmeter.room.UserEntity
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.firestore.FirebaseFirestore
-import com.example.bookmeter.model.User
+import kotlinx.coroutines.launch
 
-class AuthViewModel : ViewModel() {
+class AuthViewModel(application: Application) : AndroidViewModel(application) {
     private val auth: FirebaseAuth = FirebaseAuth.getInstance()
     private val db: FirebaseFirestore = FirebaseFirestore.getInstance()
+    private val userRepository: UserRepository
+    val localUser: LiveData<UserEntity?>
 
     private val _currentUser = MutableLiveData<FirebaseUser?>()
     val currentUser: LiveData<FirebaseUser?> = _currentUser
@@ -28,6 +33,9 @@ class AuthViewModel : ViewModel() {
     }
 
     init {
+        val userDao = AppDatabase.getDatabase(getApplication()).userDao()
+        userRepository = UserRepository(userDao)
+        localUser = userRepository.user
         auth.addAuthStateListener(authListener)
         _currentUser.value = auth.currentUser
         auth.currentUser?.let { fetchUserData(it.uid) }
@@ -40,7 +48,6 @@ class AuthViewModel : ViewModel() {
 
     fun registerUser(name: String, email: String, password: String, onComplete: (Boolean, String?) -> Unit) {
         _isLoading.value = true
-
         auth.createUserWithEmailAndPassword(email, password)
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
@@ -51,6 +58,7 @@ class AuthViewModel : ViewModel() {
                             .set(userModel)
                             .addOnSuccessListener {
                                 _user.postValue(userModel)
+                                saveUserToRoom(firebaseUser.uid, name)
                                 _isLoading.postValue(false)
                                 onComplete(true, null)
                             }
@@ -71,11 +79,12 @@ class AuthViewModel : ViewModel() {
 
     fun loginUser(email: String, password: String, onComplete: (Boolean, String?) -> Unit) {
         _isLoading.value = true
-
         auth.signInWithEmailAndPassword(email, password)
             .addOnCompleteListener { task ->
                 _isLoading.postValue(false)
                 if (task.isSuccessful) {
+                    val firebaseUser = auth.currentUser
+                    firebaseUser?.let { fetchUserData(it.uid) }
                     onComplete(true, null)
                 } else {
                     onComplete(false, task.exception?.message)
@@ -84,12 +93,15 @@ class AuthViewModel : ViewModel() {
     }
 
     fun logout(onComplete: (Boolean, String?) -> Unit) {
-        try {
-            auth.signOut()
-            _user.value = null
-            onComplete(true, null)
-        } catch (e: Exception) {
-            onComplete(false, e.message)
+        viewModelScope.launch {
+            try {
+                auth.signOut()
+                userRepository.clearAllUsers()
+                _user.postValue(null)
+                onComplete(true, null)
+            } catch (e: Exception) {
+                onComplete(false, e.message)
+            }
         }
     }
 
@@ -100,6 +112,7 @@ class AuthViewModel : ViewModel() {
                 if (document.exists()) {
                     val userModel = document.toObject(User::class.java)
                     _user.postValue(userModel)
+                    userModel?.let { saveUserToRoom(it.uid, it.name) }
                 } else {
                     _user.postValue(null)
                 }
@@ -107,5 +120,11 @@ class AuthViewModel : ViewModel() {
             .addOnFailureListener {
                 _user.postValue(null)
             }
+    }
+
+    private fun saveUserToRoom(uid: String, name: String) {
+        viewModelScope.launch {
+            userRepository.insertUser(UserEntity(uid, name))
+        }
     }
 }
