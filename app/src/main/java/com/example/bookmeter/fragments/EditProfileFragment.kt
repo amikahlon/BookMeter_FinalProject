@@ -45,6 +45,7 @@ class EditProfileFragment : Fragment() {
     private val requestPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { isGranted: Boolean ->
+        // ...existing code...
     }
     
     // Settings launcher

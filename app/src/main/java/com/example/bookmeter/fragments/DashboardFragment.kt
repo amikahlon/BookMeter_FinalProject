@@ -172,21 +172,25 @@ class DashboardFragment : Fragment(), NavigationView.OnNavigationItemSelectedLis
 
     override fun onNavigationItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
-            R.id.nav_home -> {
+            R.id.dashboardFragment -> {
                 // We're already on the home screen
             }
-            R.id.nav_profile -> {
+            R.id.profileFragment -> {
                 findNavController().navigate(R.id.action_dashboardFragment_to_profileFragment)
             }
-            R.id.nav_my_books -> {
-                SnackbarHelper.showInfo(binding.root, "My Books feature coming soon!")
+            R.id.addPostFragment -> {
+                findNavController().navigate(R.id.action_dashboardFragment_to_addPostFragment)
             }
+            // If you have other menu items like wishlist, settings, etc.
+            // Add them here using their correct resource IDs
+            /*
             R.id.nav_wishlist -> {
                 SnackbarHelper.showInfo(binding.root, "Wishlist feature coming soon!")
             }
             R.id.nav_settings -> {
                 SnackbarHelper.showInfo(binding.root, "Settings feature coming soon!")
             }
+            */
             R.id.nav_logout -> {
                 // Close drawer immediately
                 binding.drawerLayout.closeDrawer(GravityCompat.START)
