@@ -13,11 +13,9 @@ import androidx.navigation.fragment.navArgs
 import com.bumptech.glide.Glide
 import com.example.bookmeter.R
 import com.example.bookmeter.databinding.FragmentProfileBinding
-import com.example.bookmeter.model.BookGenre
 import com.example.bookmeter.utils.SnackbarHelper
 import com.example.bookmeter.utils.LoadingStateManager
 import com.example.bookmeter.viewmodels.AuthViewModel
-import com.google.android.material.chip.Chip
 
 class ProfileFragment : Fragment() {
     private var _binding: FragmentProfileBinding? = null
@@ -121,9 +119,6 @@ class ProfileFragment : Fragment() {
                 binding.tvReadBooksCount.text = user.readBooks.size.toString()
                 binding.tvWishlistCount.text = user.wishlistBooks.size.toString()
                 
-                // Display favorite genres
-                setupGenreChips(user.favoriteGenres)
-                
                 // הסתרת מסך הטעינה רק אחרי שהכל מוכן להצגה
                 loadingStateManager.hideLoading()
             }
@@ -143,9 +138,6 @@ class ProfileFragment : Fragment() {
                 binding.tvReadBooksCount.text = "0"
                 binding.tvWishlistCount.text = "0"
                 
-                // נציג רשימת ז'אנרים ריקה
-                setupGenreChips(emptyList())
-                
                 // סימון שטענו נתונים והסתרת מסך טעינה
                 isDataLoaded = true
                 loadingStateManager.hideLoading()
@@ -163,32 +155,14 @@ class ProfileFragment : Fragment() {
         }
     }
     
-    private fun setupGenreChips(genres: List<String>) {
-        binding.genresChipGroup.removeAllViews()
-        
-        if (genres.isEmpty()) {
-            // Show a message if no genres are selected
-            val chip = Chip(requireContext())
-            chip.text = "No favorite genres selected"
-            chip.isCheckable = false
-            binding.genresChipGroup.addView(chip)
-            return
-        }
-        
-        // Convert genre enum names to display names
-        val displayNames = BookGenre.toDisplayNames(genres)
-        
-        // Add a chip for each genre
-        for (genreName in displayNames) {
-            val chip = Chip(requireContext())
-            chip.text = genreName
-            chip.isClickable = false
-            chip.isCheckable = false
-            binding.genresChipGroup.addView(chip)
-        }
-    }
-
     private fun setupClickListeners() {
+        binding.btnEdit.setOnClickListener {
+            if (isAdded && findNavController().currentDestination?.id == R.id.profileFragment) {
+                val action = ProfileFragmentDirections.actionProfileFragmentToEditProfileFragment()
+                findNavController().navigate(action)
+            }
+        }
+        
         binding.btnLogout.setOnClickListener {
             // Disable the button immediately to prevent multiple clicks
             binding.btnLogout.isEnabled = false
