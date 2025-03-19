@@ -9,7 +9,10 @@ plugins {
 android {
     buildFeatures {
         viewBinding = true
+        buildConfig = true
+
     }
+
     namespace = "com.example.bookmeter"
     compileSdk = 34
 
@@ -29,6 +32,10 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            buildConfigField("String", "GOOGLE_BOOKS_API_KEY", "\"${project.properties["GOOGLE_BOOKS_API_KEY"]}\"")
+        }
+        debug {
+            buildConfigField("String", "GOOGLE_BOOKS_API_KEY", "\"${project.properties["GOOGLE_BOOKS_API_KEY"]}\"")
         }
     }
     compileOptions {
