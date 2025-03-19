@@ -59,6 +59,9 @@
         <action
             android:id="@+id/action_dashboardFragment_to_profileFragment"
             app:destination="@id/profileFragment" />
+        <action
+            android:id="@+id/action_dashboardFragment_to_addPostFragment"
+            app:destination="@id/addPostFragment" />
     </fragment>
 
     <!-- Profile Screen -->
@@ -80,6 +83,9 @@
         <action
             android:id="@+id/action_profileFragment_to_editProfileFragment"
             app:destination="@id/editProfileFragment" />
+        <action
+            android:id="@+id/action_profileFragment_to_addPostFragment"
+            app:destination="@id/addPostFragment" />
     </fragment>
 
     <!-- Edit Profile Screen -->
@@ -93,6 +99,19 @@
             app:destination="@id/profileFragment"
             app:popUpTo="@id/profileFragment"
             app:popUpToInclusive="true" />
+    </fragment>
+
+    <!-- Add Post Screen -->
+    <fragment
+        android:id="@+id/addPostFragment"
+        android:name="com.example.bookmeter.ui.addpost.AddPostFragment"
+        android:label="Add Review"
+        tools:layout="@layout/fragment_add_post">
+        <action
+            android:id="@+id/action_addPostFragment_to_dashboardFragment"
+            app:destination="@id/dashboardFragment"
+            app:popUpTo="@id/dashboardFragment"
+            app:popUpToInclusive="false" />
     </fragment>
 
 </navigation>
