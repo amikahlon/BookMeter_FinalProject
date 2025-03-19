@@ -1,5 +1,6 @@
 package com.example.bookmeter.viewmodels
 
+import android.net.Uri
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -23,12 +24,13 @@ class PostViewModel : ViewModel() {
     val userPosts: LiveData<Result<List<Post>>?> = _userPosts
     
     fun createPost(
-        bookId: String,       // Added bookId parameter
+        bookId: String,
         bookName: String,
         bookImageUrl: String,
         title: String,
         review: String,
-        rating: Int
+        rating: Int,
+        imageUri: Uri? = null // Added parameter for post image
     ) {
         val currentUser = auth.currentUser
         if (currentUser == null) {
@@ -40,7 +42,7 @@ class PostViewModel : ViewModel() {
         
         viewModelScope.launch {
             val post = Post(
-                bookId = bookId,      // Added bookId field
+                bookId = bookId,
                 bookName = bookName,
                 bookImageUrl = bookImageUrl,
                 title = title,
@@ -48,9 +50,10 @@ class PostViewModel : ViewModel() {
                 rating = rating,
                 userId = currentUser.uid,
                 timestamp = System.currentTimeMillis()
+                // imageUrl will be set in repository after upload
             )
             
-            val result = repository.createPost(post)
+            val result = repository.createPost(post, imageUri)
             _newPostResult.postValue(result)
             _isLoading.postValue(false)
         }
