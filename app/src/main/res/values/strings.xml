@@ -10,4 +10,6 @@
     <string name="settings">Settings</string>
     <string name="logout">Logout</string>
     <string name="wishlist">Wishlist</string>
+    <string name="profile_image">Profile Image</string>
+    <string name="edit_profile">Edit Profile</string>
 </resources>

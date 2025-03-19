@@ -16,4 +16,7 @@
     <color name="snackbar_error">#F44336</color>
     <color name="snackbar_warning">#FFC107</color>
     <color name="snackbar_info">#2196F3</color>
+
+    <color name="light_gray">#E0E0E0</color>
+    <color name="dark_gray">#757575</color>
 </resources>

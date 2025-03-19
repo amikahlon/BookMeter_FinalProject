@@ -8,7 +8,6 @@ import android.provider.MediaStore
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.content.pm.PackageManager
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
@@ -16,12 +15,10 @@ import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
 import com.example.bookmeter.R
 import com.example.bookmeter.databinding.FragmentRegisterBinding
-import com.example.bookmeter.model.BookGenre
 import com.example.bookmeter.utils.PermissionHelper
 import com.example.bookmeter.utils.SnackbarHelper
-import com.example.bookmeter.viewmodels.AuthViewModel
-import com.google.android.material.chip.Chip
 import com.example.bookmeter.utils.LoadingStateManager
+import com.example.bookmeter.viewmodels.AuthViewModel
 
 class RegisterFragment : Fragment() {
     private var _binding: FragmentRegisterBinding? = null
@@ -29,7 +26,6 @@ class RegisterFragment : Fragment() {
 
     private val authViewModel: AuthViewModel by activityViewModels()
     private var profileImageUri: Uri? = null
-    private val selectedGenres = mutableListOf<String>()
     private lateinit var loadingStateManager: LoadingStateManager
 
     // Track whether we've shown the rationale dialog
@@ -97,37 +93,8 @@ class RegisterFragment : Fragment() {
         loadingStateManager.init(binding.root, R.id.registerContent)
         
         setupObservers()
-        setupGenreChips()
         setupClickListeners()
         checkLocalUser()
-    }
-
-    private fun setupGenreChips() {
-        val genres = BookGenre.values()
-        binding.genresChipGroup.apply {
-            removeAllViews()  // Clear any existing chips
-            
-            genres.forEach { genre ->
-                val chip = layoutInflater.inflate(
-                    R.layout.item_chip_choice, 
-                    binding.genresChipGroup, 
-                    false
-                ) as Chip
-                
-                chip.text = genre.displayName
-                chip.isCheckable = true
-                
-                chip.setOnCheckedChangeListener { _, isChecked ->
-                    if (isChecked) {
-                        selectedGenres.add(genre.name)
-                    } else {
-                        selectedGenres.remove(genre.name)
-                    }
-                }
-                
-                addView(chip)
-            }
-        }
     }
 
     private fun checkLocalUser() {
@@ -187,8 +154,7 @@ class RegisterFragment : Fragment() {
                 name, 
                 email, 
                 password, 
-                profileImageUri,
-                selectedGenres
+                profileImageUri
             ) { success, message ->
                 if (!isAdded || _binding == null) return@registerUser
 

@@ -10,8 +10,11 @@ import com.example.bookmeter.room.UserEntity
 import com.example.bookmeter.utils.StorageHelper
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
+import com.google.firebase.auth.UserProfileChangeRequest
 import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 
 class AuthViewModel(application: Application) : AndroidViewModel(application) {
     private val auth: FirebaseAuth = FirebaseAuth.getInstance()
@@ -53,7 +56,6 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
         email: String, 
         password: String, 
         profileImageUri: Uri?,
-        favoriteGenres: List<String>,
         onComplete: (Boolean, String?) -> Unit
     ) {
         _isLoading.value = true
@@ -80,7 +82,6 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
                                 name = name,
                                 email = email,
                                 profilePictureUrl = profilePictureUrl,
-                                favoriteGenres = favoriteGenres,
                                 wishlistBooks = listOf(),  // Empty wishlist for new users
                                 readBooks = listOf()       // Empty read books for new users
                             )
@@ -177,6 +178,97 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
     private fun saveUserToRoom(uid: String, name: String, profilePictureUrl: String = "") {
         viewModelScope.launch {
             userRepository.insertUser(UserEntity(uid, name, profilePictureUrl))
+        }
+    }
+
+    /**
+     * Update user profile information
+     */
+    fun updateUserProfile(
+        name: String,
+        imageUri: Uri?,
+        callback: (Boolean, String?) -> Unit
+    ) {
+        viewModelScope.launch {
+            try {
+                _isLoading.value = true
+                
+                val currentUser = FirebaseAuth.getInstance().currentUser
+                if (currentUser == null) {
+                    _isLoading.value = false
+                    callback(false, "User not logged in")
+                    return@launch
+                }
+                
+                val userId = currentUser.uid
+                
+                // Get current user data from Firebase
+                val db = FirebaseFirestore.getInstance()
+                val currentUserDoc = db.collection("users").document(userId).get().await()
+                val currentUserData = currentUserDoc.toObject(User::class.java) ?: User(uid = userId)
+                
+                // Process profile image if provided
+                var profilePictureUrl = currentUserData.profilePictureUrl
+                if (imageUri != null) {
+                    // Upload new image
+                    val newImageUrl = StorageHelper.uploadProfileImage(imageUri, userId)
+                    if (newImageUrl != null) {
+                        profilePictureUrl = newImageUrl
+                        
+                        // Update Firebase Auth profile picture
+                        val profileUpdates = UserProfileChangeRequest.Builder()
+                            .setPhotoUri(Uri.parse(newImageUrl))
+                            .build()
+                        currentUser.updateProfile(profileUpdates).await()
+                    }
+                }
+                
+                // Update name in Firebase Auth
+                val nameUpdates = UserProfileChangeRequest.Builder()
+                    .setDisplayName(name)
+                    .build()
+                currentUser.updateProfile(nameUpdates).await()
+                
+                // Create updated user object
+                val updatedUser = User(
+                    uid = userId,
+                    name = name,
+                    email = currentUserData.email,
+                    profilePictureUrl = profilePictureUrl,
+                    wishlistBooks = currentUserData.wishlistBooks,
+                    readBooks = currentUserData.readBooks
+                )
+                
+                // Update in Firestore
+                db.collection("users").document(userId).set(updatedUser).await()
+                
+                // Update in Room
+                val userEntity = UserEntity(
+                    uid = userId,
+                    name = name,
+                    profilePictureUrl = profilePictureUrl
+                )
+                userRepository.insertUser(userEntity)
+                
+                // Refresh the user LiveData
+                _user.postValue(updatedUser)
+                
+                _isLoading.value = false
+                callback(true, "Profile updated successfully")
+                
+            } catch (e: Exception) {
+                _isLoading.value = false
+                callback(false, e.message ?: "Error updating profile")
+            }
+        }
+    }
+
+    /**
+     * Force refresh user data from Firestore
+     */
+    fun refreshUserData() {
+        auth.currentUser?.let { user ->
+            fetchUserData(user.uid)
         }
     }
 }

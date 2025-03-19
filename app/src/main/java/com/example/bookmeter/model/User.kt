@@ -5,7 +5,6 @@ data class User(
     val name: String = "",
     val email: String = "",
     val profilePictureUrl: String = "",
-    val favoriteGenres: List<String> = listOf(),
     val wishlistBooks: List<String> = listOf(),
     val readBooks: List<String> = listOf()
 )
