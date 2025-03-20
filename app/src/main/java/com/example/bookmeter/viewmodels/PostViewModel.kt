@@ -80,15 +80,14 @@ class PostViewModel : ViewModel() {
     
     fun deletePost(postId: String) {
         _isLoading.value = true
-        viewModelScope.launch {
-            val result = repository.deletePost(postId)
-            if (result.isSuccess) {
+        repository.deletePost(postId)
+            .addOnSuccessListener {
                 // Refresh user posts after successful deletion
                 auth.currentUser?.uid?.let { getUserPosts(it) }
-            } else {
-                // Still set loading to false if deletion fails
+            }
+            .addOnFailureListener {
+                // Set loading to false if deletion fails
                 _isLoading.postValue(false)
             }
-        }
     }
 }
