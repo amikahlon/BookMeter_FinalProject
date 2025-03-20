@@ -12,6 +12,7 @@ import com.example.bookmeter.R
 import com.example.bookmeter.databinding.FragmentPostDetailBinding
 import com.example.bookmeter.model.Post
 import com.example.bookmeter.model.User
+import com.example.bookmeter.repository.PostRepository
 import com.example.bookmeter.utils.LoadingStateManager
 import com.example.bookmeter.utils.SnackbarHelper
 import com.example.bookmeter.viewmodels.AuthViewModel
@@ -30,6 +31,8 @@ class PostDetailFragment : Fragment() {
     private val firestore = FirebaseFirestore.getInstance()
     private var currentPost: Post? = null
     private var postUser: User? = null
+
+    private val postRepository = PostRepository()
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -138,11 +141,24 @@ class PostDetailFragment : Fragment() {
         } else {
             binding.postImage.visibility = View.GONE
         }
+
+        // Set like button state
+        val currentUserId = authViewModel.currentUser?.value?.uid
+        val isLiked = currentUserId != null && post.likedBy.contains(currentUserId)
+        updateLikeButtonState(isLiked)
+        
+        // Format like count text
+        val likeCount = post.likes
+        binding.btnLike.text = when {
+            likeCount == 0 -> "Like"
+            likeCount == 1 -> "1 Like"
+            else -> "$likeCount Likes"
+        }
     }
     
     private fun setupClickListeners() {
         binding.btnLike.setOnClickListener {
-            SnackbarHelper.showInfo(binding.root, "Like feature coming soon!")
+            handleLikeAction()
         }
         
         binding.btnShare.setOnClickListener {
@@ -172,6 +188,55 @@ class PostDetailFragment : Fragment() {
                 }
             }
         }
+    }
+
+    private fun handleLikeAction() {
+        val currentUserId = authViewModel.currentUser?.value?.uid
+        if (currentUserId == null) {
+            SnackbarHelper.showInfo(binding.root, "You need to be logged in to like posts")
+            return
+        }
+        
+        currentPost?.let { post ->
+            // Show loading state
+            setLikeButtonLoading(true)
+            
+            // Toggle the like in the database
+            postRepository.toggleLike(post.id, currentUserId)
+                .addOnSuccessListener {
+                    // Refresh post data to get updated like count
+                    loadPostDetails()
+                }
+                .addOnFailureListener { e ->
+                    // Hide loading state
+                    setLikeButtonLoading(false)
+                    
+                    // Show error
+                    SnackbarHelper.showError(binding.root, "Failed to update like: ${e.message}")
+                }
+        }
+    }
+
+    private fun setLikeButtonLoading(isLoading: Boolean) {
+        if (isLoading) {
+            binding.likeProgressBar.visibility = View.VISIBLE
+            binding.btnLike.icon = null
+            binding.btnLike.text = ""
+            binding.btnLike.isEnabled = false
+        } else {
+            binding.likeProgressBar.visibility = View.GONE
+            binding.btnLike.isEnabled = true
+            // The icon and text will be set in the updateLikeButtonState method
+        }
+    }
+
+    private fun updateLikeButtonState(isLiked: Boolean) {
+        binding.likeProgressBar.visibility = View.GONE
+        binding.btnLike.isEnabled = true
+        binding.btnLike.isSelected = isLiked
+        binding.btnLike.setIconResource(
+            if (isLiked) R.drawable.ic_like_filled else R.drawable.ic_like_outline
+        )
     }
     
     private fun showDeleteConfirmation() {
