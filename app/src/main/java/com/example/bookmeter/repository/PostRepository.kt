@@ -198,4 +198,90 @@ class PostRepository {
                 post?.likes ?: 0
             }
     }
+
+    /**
+     * Update an existing post
+     * @param postId The ID of the post to update
+     * @param updates Map of fields to update
+     * @param newImageUri Optional new image to upload
+     * @param shouldRemoveImage Flag to indicate if the image should be removed
+     * @return Task representing the success or failure of the operation
+     */
+    fun updatePost(postId: String, updates: Map<String, Any>, newImageUri: Uri? = null, shouldRemoveImage: Boolean = false): Task<Void> {
+        val postRef = postsCollection.document(postId)
+        
+        return postRef.get()
+            .continueWithTask { task ->
+                if (!task.isSuccessful) {
+                    throw task.exception ?: Exception("Failed to fetch post")
+                }
+                
+                val post = task.result.toObject(Post::class.java)
+                    ?: throw Exception("Post not found")
+                
+                // Handle image removal explicitly
+                if (shouldRemoveImage) {
+                    // Create a new updates map with the imageUrl set to empty string
+                    val updatedFields = HashMap(updates)
+                    updatedFields["imageUrl"] = ""
+                    
+                    // Delete the old image if it exists
+                    if (post.imageUrl.isNotEmpty()) {
+                        try {
+                            val oldImageRef = storage.getReferenceFromUrl(post.imageUrl)
+                            oldImageRef.delete()
+                                .addOnFailureListener { e ->
+                                    android.util.Log.e("PostRepository", "Error deleting old image: ${e.message}")
+                                }
+                        } catch (e: Exception) {
+                            android.util.Log.e("PostRepository", "Error getting storage reference: ${e.message}")
+                        }
+                    }
+                    
+                    return@continueWithTask postRef.update(updatedFields)
+                }
+                
+                // If there's a new image, upload it first, then update the post
+                if (newImageUri != null) {
+                    // Upload the new image
+                    val filename = "post_images/${UUID.randomUUID()}"
+                    val storageRef = storage.reference.child(filename)
+                    
+                    return@continueWithTask storageRef.putFile(newImageUri)
+                        .continueWithTask { uploadTask ->
+                            if (!uploadTask.isSuccessful) {
+                                throw uploadTask.exception ?: Exception("Failed to upload image")
+                            }
+                            
+                            // Get the download URL
+                            storageRef.downloadUrl
+                        }
+                        .continueWithTask { downloadUrlTask ->
+                            if (!downloadUrlTask.isSuccessful) {
+                                throw downloadUrlTask.exception ?: Exception("Failed to get download URL")
+                            }
+                            
+                            // Update the post with the new image URL and other updates
+                            val updatedFields = HashMap(updates)
+                            updatedFields["imageUrl"] = downloadUrlTask.result.toString()
+                            
+                            // Delete the old image if it exists
+                            val oldImageUrl = post.imageUrl
+                            if (oldImageUrl.isNotEmpty()) {
+                                try {
+                                    val oldImageRef = storage.getReferenceFromUrl(oldImageUrl)
+                                    oldImageRef.delete()
+                                } catch (e: Exception) {
+                                    android.util.Log.e("PostRepository", "Error deleting old image: ${e.message}")
+                                }
+                            }
+                            
+                            postRef.update(updatedFields)
+                        }
+                } else {
+                    // No new image, just update the fields
+                    return@continueWithTask postRef.update(updates)
+                }
+            }
+    }
 }
