@@ -3,9 +3,6 @@
     <!-- Base application theme -->
     <!-- ...existing styles... -->
 
-    <style name="circleImageView">
-        <item name="cornerSize">50%</item>
-    </style>
 
     <!-- Style for section titles -->
     <style name="SectionTitleStyle">
@@ -33,5 +30,15 @@
     <style name="SelectedBookCardStyle" parent="BookCardStyle">
         <item name="strokeColor">#2563EB</item>
         <item name="strokeWidth">2dp</item>
+    </style>
+
+    <style name="circleImageView">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">50%</item>
+    </style>
+
+    <style name="roundedCornerImageView">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">8dp</item>
     </style>
 </resources>

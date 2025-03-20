@@ -7,24 +7,32 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.GravityCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.example.bookmeter.MainActivity
 import com.example.bookmeter.R
 import com.example.bookmeter.databinding.FragmentDashboardBinding
+import com.example.bookmeter.model.Post
+import com.example.bookmeter.ui.adapters.PostAdapter
 import com.example.bookmeter.utils.LoadingStateManager
 import com.example.bookmeter.utils.SnackbarHelper
 import com.example.bookmeter.viewmodels.AuthViewModel
+import com.example.bookmeter.viewmodels.PostListViewModel
 import com.google.android.material.navigation.NavigationView
 
 class DashboardFragment : Fragment(), NavigationView.OnNavigationItemSelectedListener {
     private var _binding: FragmentDashboardBinding? = null
     private val binding get() = _binding!!
     private val authViewModel: AuthViewModel by activityViewModels()
+    private val postListViewModel: PostListViewModel by viewModels()
     private val args: DashboardFragmentArgs by navArgs()
     private lateinit var toggle: ActionBarDrawerToggle
     private lateinit var loadingStateManager: LoadingStateManager
+    private lateinit var postAdapter: PostAdapter
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -46,6 +54,8 @@ class DashboardFragment : Fragment(), NavigationView.OnNavigationItemSelectedLis
 
         setupToolbar()
         setupNavigationDrawer()
+        setupPostsRecyclerView()
+        setupSwipeRefresh()
         setupObservers()
         setupClickListeners()
         
@@ -76,6 +86,64 @@ class DashboardFragment : Fragment(), NavigationView.OnNavigationItemSelectedLis
 
         binding.navigationView.setNavigationItemSelectedListener(this)
     }
+    
+    private fun setupPostsRecyclerView() {
+        postAdapter = PostAdapter(
+            onEditClick = { post -> handlePostEdit(post) },
+            onDeleteClick = { post -> handlePostDelete(post) },
+            onLikeClick = { post -> handlePostLike(post) },
+            onPostClick = { post -> navigateToPostDetail(post) },
+            currentUserId = authViewModel.currentUser?.value?.uid
+        )
+        
+        binding.postsRecyclerView.apply {
+            layoutManager = LinearLayoutManager(context)
+            adapter = postAdapter
+            setHasFixedSize(true)
+            
+            // Add animation for scrolling
+            addOnScrollListener(object : RecyclerView.OnScrollListener() {
+                override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+                    super.onScrolled(recyclerView, dx, dy)
+                    if (dy > 0) {
+                        // Scrolling down - hide FAB
+                        binding.fabAddPost.hide()
+                    } else if (dy < 0) {
+                        // Scrolling up - show FAB
+                        binding.fabAddPost.show()
+                    }
+                }
+            })
+        }
+        
+        // Show shimmer loading effect while posts are loading
+        showRecyclerViewLoading(true)
+    }
+
+    private fun showRecyclerViewLoading(isLoading: Boolean) {
+        if (isLoading) {
+            binding.postsRecyclerView.visibility = View.GONE
+            binding.shimmerFrameLayout.visibility = View.VISIBLE
+            binding.shimmerFrameLayout.startShimmer()
+        } else {
+            binding.shimmerFrameLayout.stopShimmer()
+            binding.shimmerFrameLayout.visibility = View.GONE
+            binding.postsRecyclerView.visibility = View.VISIBLE
+        }
+    }
+    
+    private fun setupSwipeRefresh() {
+        binding.swipeRefreshLayout.setOnRefreshListener {
+            postListViewModel.refreshPosts()
+        }
+        
+        // Set refresh indicator colors
+        binding.swipeRefreshLayout.setColorSchemeResources(
+            R.color.colorPrimary,
+            R.color.colorAccent,
+            R.color.colorPrimaryDark
+        )
+    }
 
     private fun setupObservers() {
         // Observe user data
@@ -97,9 +165,6 @@ class DashboardFragment : Fragment(), NavigationView.OnNavigationItemSelectedLis
                         .error(R.drawable.profile_placeholder)
                         .into(profileImageView)
                 }
-                
-                // Hide loading when data is ready
-                loadingStateManager.hideLoading()
             }
         }
 
@@ -113,13 +178,9 @@ class DashboardFragment : Fragment(), NavigationView.OnNavigationItemSelectedLis
                 val headerView = binding.navigationView.getHeaderView(0)
                 headerView.findViewById<android.widget.TextView>(R.id.navHeaderUsername).text = localUser.name
                 headerView.findViewById<android.widget.TextView>(R.id.navHeaderEmail).text = ""
-                
-                // Hide loading when local data is ready
-                loadingStateManager.hideLoading()
             }
             
-            // Check authentication status - FIX THE NAVIGATION ERROR
-            // Don't try to navigate if we're not attached to a context or if view is destroyed
+            // Check authentication status
             if (localUser == null && isAdded && _binding != null) {
                 try {
                     // Only navigate if we're currently on the dashboard
@@ -135,20 +196,73 @@ class DashboardFragment : Fragment(), NavigationView.OnNavigationItemSelectedLis
             }
         }
 
-        // Observe loading state
-        authViewModel.isLoading.observe(viewLifecycleOwner) { isLoading ->
+        // Observe post data
+        postListViewModel.posts.observe(viewLifecycleOwner) { posts ->
+            postAdapter.submitList(posts)
+            loadingStateManager.hideLoading()
+            binding.swipeRefreshLayout.isRefreshing = false
+            showRecyclerViewLoading(false)
+            
+            // Show empty state if needed
+            binding.emptyStateTextView.visibility = if (posts.isEmpty()) View.VISIBLE else View.GONE
+        }
+        
+        // Observe post loading state
+        postListViewModel.isLoading.observe(viewLifecycleOwner) { isLoading ->
             if (isLoading) {
-                loadingStateManager.showLoading("Loading your data...")
+                if (postAdapter.itemCount == 0) {
+                    showRecyclerViewLoading(true)
+                }
+            }
+        }
+        
+        // Observe post loading errors
+        postListViewModel.errorMessage.observe(viewLifecycleOwner) { errorMessage ->
+            if (!errorMessage.isNullOrEmpty()) {
+                binding.swipeRefreshLayout.isRefreshing = false
+                SnackbarHelper.showError(binding.root, errorMessage)
             }
         }
     }
 
     private fun setupClickListeners() {
-        binding.fabAddBook.setOnClickListener {
-            SnackbarHelper.showInfo(binding.root, "Add book feature coming soon!")
-            // In a real app, you would navigate to add book screen
-            // findNavController().navigate(R.id.action_dashboardFragment_to_addBookFragment)
+        binding.fabAddPost.setOnClickListener {
+            findNavController().navigate(R.id.action_dashboardFragment_to_addPostFragment)
         }
+    }
+    
+    private fun handlePostEdit(post: Post) {
+        // TODO: Navigate to edit post screen
+        SnackbarHelper.showInfo(binding.root, "Edit post feature coming soon!")
+    }
+
+    private fun handlePostDelete(post: Post) {
+        // Show confirmation dialog
+        androidx.appcompat.app.AlertDialog.Builder(requireContext())
+            .setTitle("Delete Post")
+            .setMessage("Are you sure you want to delete this post? This action cannot be undone.")
+            .setPositiveButton("Delete") { _, _ ->
+                // TODO: Implement delete post functionality
+                SnackbarHelper.showInfo(binding.root, "Delete post feature coming soon!")
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+    
+    private fun handlePostLike(post: Post) {
+        // TODO: Implement like functionality
+        SnackbarHelper.showInfo(binding.root, "Like feature coming soon!")
+    }
+    
+    private fun handlePostComment(post: Post) {
+        // TODO: Implement comment functionality
+        SnackbarHelper.showInfo(binding.root, "Comment feature coming soon!")
+    }
+    
+    
+    private fun navigateToPostDetail(post: Post) {
+        val action = DashboardFragmentDirections.actionDashboardFragmentToPostDetailFragment(post.id)
+        findNavController().navigate(action)
     }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
@@ -163,7 +277,7 @@ class DashboardFragment : Fragment(), NavigationView.OnNavigationItemSelectedLis
                 true
             }
             R.id.action_add -> {
-                SnackbarHelper.showInfo(binding.root, "Add book feature coming soon!")
+                findNavController().navigate(R.id.action_dashboardFragment_to_addPostFragment)
                 true
             }
             else -> super.onOptionsItemSelected(item)
@@ -181,16 +295,6 @@ class DashboardFragment : Fragment(), NavigationView.OnNavigationItemSelectedLis
             R.id.addPostFragment -> {
                 findNavController().navigate(R.id.action_dashboardFragment_to_addPostFragment)
             }
-            // If you have other menu items like wishlist, settings, etc.
-            // Add them here using their correct resource IDs
-            /*
-            R.id.nav_wishlist -> {
-                SnackbarHelper.showInfo(binding.root, "Wishlist feature coming soon!")
-            }
-            R.id.nav_settings -> {
-                SnackbarHelper.showInfo(binding.root, "Settings feature coming soon!")
-            }
-            */
             R.id.nav_logout -> {
                 // Close drawer immediately
                 binding.drawerLayout.closeDrawer(GravityCompat.START)
