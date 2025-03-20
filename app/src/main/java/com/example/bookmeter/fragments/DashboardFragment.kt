@@ -17,6 +17,7 @@ import com.example.bookmeter.MainActivity
 import com.example.bookmeter.R
 import com.example.bookmeter.databinding.FragmentDashboardBinding
 import com.example.bookmeter.model.Post
+import com.example.bookmeter.repository.PostRepository
 import com.example.bookmeter.ui.adapters.PostAdapter
 import com.example.bookmeter.utils.LoadingStateManager
 import com.example.bookmeter.utils.SnackbarHelper
@@ -259,11 +260,34 @@ class DashboardFragment : Fragment(), NavigationView.OnNavigationItemSelectedLis
             .setTitle("Delete Post")
             .setMessage("Are you sure you want to delete this post? This action cannot be undone.")
             .setPositiveButton("Delete") { _, _ ->
-                // TODO: Implement delete post functionality
-                SnackbarHelper.showInfo(binding.root, "Delete post feature coming soon!")
+                deletePost(post)
             }
             .setNegativeButton("Cancel", null)
             .show()
+    }
+
+    private fun deletePost(post: Post) {
+        // Show loading state
+        loadingStateManager.showLoading("Deleting post...")
+        
+        // Use the repository to delete the post
+        val postRepository = PostRepository()
+        
+        // Call the delete function from repository
+        postRepository.deletePost(post.id)
+            .addOnSuccessListener {
+                // Hide loading and show success message
+                loadingStateManager.hideLoading()
+                SnackbarHelper.showSuccess(binding.root, "Post deleted successfully")
+                
+                // Refresh the posts list
+                postListViewModel.refreshPosts()
+            }
+            .addOnFailureListener { e ->
+                // Hide loading and show error message
+                loadingStateManager.hideLoading()
+                SnackbarHelper.showError(binding.root, "Failed to delete post: ${e.message}")
+            }
     }
     
     private fun handlePostLike(post: Post) {

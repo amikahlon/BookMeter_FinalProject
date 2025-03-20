@@ -254,8 +254,7 @@ class PostDetailFragment : Fragment() {
         currentPost?.let { post ->
             loadingStateManager.showLoading("Deleting post...")
             
-            firestore.collection("posts").document(post.id)
-                .delete()
+            postRepository.deletePost(post.id)
                 .addOnSuccessListener {
                     loadingStateManager.hideLoading()
                     SnackbarHelper.showSuccess(binding.root, "Post deleted successfully")

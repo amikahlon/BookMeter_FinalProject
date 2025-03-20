@@ -76,33 +76,49 @@ class PostRepository {
             Result.failure(e)
         }
     }
-    
-    suspend fun deletePost(postId: String): Result<Unit> {
-        return try {
-            // Get post to check if it has an image to delete
-            val post = postsCollection.document(postId).get().await().toObject(Post::class.java)
-            
-            // Delete the post document
-            postsCollection.document(postId).delete().await()
-            
-            // If post had an image URL, delete from storage too
-            post?.imageUrl?.let { imageUrl ->
-                if (imageUrl.isNotEmpty()) {
-                    try {
-                        // Extract storage path from URL
-                        val storageRef = storage.getReferenceFromUrl(imageUrl)
-                        storageRef.delete().await()
-                    } catch (e: Exception) {
-                        // Log but don't fail if image deletion fails
-                        e.printStackTrace()
+
+    /**
+     * Delete a post and its associated image if it exists
+     * @param postId ID of the post to delete
+     * @return Task indicating success or failure
+     */
+    fun deletePost(postId: String): Task<Void> {
+        val postRef = postsCollection.document(postId)
+        
+        // First get the post to check if it has an image to delete
+        return postRef.get()
+            .continueWithTask { task ->
+                if (!task.isSuccessful) {
+                    throw task.exception ?: Exception("Failed to fetch post")
+                }
+                
+                val post = task.result.toObject(Post::class.java)
+                
+                // Delete the post document
+                val deleteTask = postRef.delete()
+                
+                // If post had an image URL and it's not empty, delete from storage too
+                if (post?.imageUrl?.isNotEmpty() == true) {
+                    deleteTask.addOnSuccessListener {
+                        try {
+                            // Extract storage path from URL and delete the image
+                            // Note: This runs independently of the post deletion
+                            val storageRef = storage.getReferenceFromUrl(post.imageUrl)
+                            storageRef.delete()
+                                .addOnFailureListener { e ->
+                                    // Just log the error but don't fail the whole operation
+                                    android.util.Log.e("PostRepository", "Failed to delete image: ${e.message}")
+                                }
+                        } catch (e: Exception) {
+                            // Log but don't fail if image deletion fails
+                            android.util.Log.e("PostRepository", "Error parsing image URL: ${e.message}")
+                        }
                     }
                 }
+                
+                // Return the task for deleting the post document
+                deleteTask
             }
-            
-            Result.success(Unit)
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
     }
 
     /**
