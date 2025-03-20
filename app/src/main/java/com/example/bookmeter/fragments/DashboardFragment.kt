@@ -342,6 +342,9 @@ class DashboardFragment : Fragment(), NavigationView.OnNavigationItemSelectedLis
             R.id.profileFragment -> {
                 findNavController().navigate(R.id.action_dashboardFragment_to_profileFragment)
             }
+            R.id.myReviewsFragment -> {
+                findNavController().navigate(R.id.action_dashboardFragment_to_myReviewsFragment)
+            }
             R.id.addPostFragment -> {
                 findNavController().navigate(R.id.action_dashboardFragment_to_addPostFragment)
             }

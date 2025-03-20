@@ -76,6 +76,9 @@
             app:exitAnim="@anim/nav_default_exit_anim"
             app:popEnterAnim="@anim/nav_default_pop_enter_anim"
             app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+        <action
+            android:id="@+id/action_dashboardFragment_to_myReviewsFragment"
+            app:destination="@id/myReviewsFragment" />
     </fragment>
 
     <!-- Profile Screen -->
@@ -100,6 +103,9 @@
         <action
             android:id="@+id/action_profileFragment_to_addPostFragment"
             app:destination="@id/addPostFragment" />
+        <action
+            android:id="@+id/action_profileFragment_to_myReviewsFragment"
+            app:destination="@id/myReviewsFragment" />
     </fragment>
 
     <!-- Edit Profile Screen -->
@@ -161,5 +167,27 @@
             app:popUpTo="@id/postDetailFragment"
             app:popUpToInclusive="true" />
     </fragment>
+
+    <!-- My Reviews Screen -->
+    <fragment
+        android:id="@+id/myReviewsFragment"
+        android:name="com.example.bookmeter.fragments.MyReviewsFragment"
+        android:label="My Reviews"
+        tools:layout="@layout/fragment_my_reviews">
+        <action
+            android:id="@+id/action_myReviewsFragment_to_postDetailFragment"
+            app:destination="@id/postDetailFragment" />
+        <action
+            android:id="@+id/action_myReviewsFragment_to_editPostFragment"
+            app:destination="@id/editPostFragment" />
+        <action
+            android:id="@+id/action_myReviewsFragment_to_addPostFragment"
+            app:destination="@id/addPostFragment" />
+    </fragment>
+
+    <!-- Global action to My Reviews -->
+    <action
+        android:id="@+id/action_global_myReviewsFragment"
+        app:destination="@id/myReviewsFragment" />
 
 </navigation>
