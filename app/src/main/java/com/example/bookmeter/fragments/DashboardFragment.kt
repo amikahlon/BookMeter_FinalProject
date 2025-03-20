@@ -250,8 +250,9 @@ class DashboardFragment : Fragment(), NavigationView.OnNavigationItemSelectedLis
     }
     
     private fun handlePostEdit(post: Post) {
-        // TODO: Navigate to edit post screen
-        SnackbarHelper.showInfo(binding.root, "Edit post feature coming soon!")
+        // Navigate directly to edit post fragment instead of going through post detail
+        val action = DashboardFragmentDirections.actionDashboardFragmentToEditPostFragment(post.id)
+        findNavController().navigate(action)
     }
 
     private fun handlePostDelete(post: Post) {

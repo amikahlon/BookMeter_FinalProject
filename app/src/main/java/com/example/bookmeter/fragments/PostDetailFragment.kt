@@ -176,7 +176,7 @@ class PostDetailFragment : Fragment() {
                 toolbar.setOnMenuItemClickListener { menuItem ->
                     when (menuItem.itemId) {
                         R.id.action_edit_post -> {
-                            SnackbarHelper.showInfo(binding.root, "Edit post feature coming soon!")
+                            navigateToEditPost(post.id)
                             true
                         }
                         R.id.action_delete_post -> {
@@ -188,6 +188,11 @@ class PostDetailFragment : Fragment() {
                 }
             }
         }
+    }
+
+    private fun navigateToEditPost(postId: String) {
+        val action = PostDetailFragmentDirections.actionPostDetailFragmentToEditPostFragment(postId)
+        findNavController().navigate(action)
     }
 
     private fun handleLikeAction() {

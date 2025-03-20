@@ -22,6 +22,13 @@ class PostViewModel : ViewModel() {
     
     private val _userPosts = MutableLiveData<Result<List<Post>>?>()
     val userPosts: LiveData<Result<List<Post>>?> = _userPosts
+
+    // Add fields to track post being edited
+    private val _postToEdit = MutableLiveData<Post?>()
+    val postToEdit: LiveData<Post?> = _postToEdit
+
+    private val _editPostResult = MutableLiveData<Boolean?>()
+    val editPostResult: LiveData<Boolean?> = _editPostResult
     
     fun createPost(
         bookId: String,
@@ -89,5 +96,59 @@ class PostViewModel : ViewModel() {
                 // Set loading to false if deletion fails
                 _isLoading.postValue(false)
             }
+    }
+
+    fun loadPostForEdit(postId: String) {
+        _isLoading.value = true
+        viewModelScope.launch {
+            try {
+                val result = repository.getPostById(postId)
+                if (result.isSuccess && result.getOrNull() != null) {
+                    _postToEdit.postValue(result.getOrNull())
+                } else {
+                    _editPostResult.postValue(false)
+                }
+            } catch (e: Exception) {
+                _editPostResult.postValue(false)
+            } finally {
+                _isLoading.postValue(false)
+            }
+        }
+    }
+
+    fun updatePost(
+        postId: String,
+        title: String,
+        review: String,
+        rating: Int,
+        newImageUri: Uri? = null,
+        shouldRemoveImage: Boolean = false
+    ) {
+        _isLoading.value = true
+        
+        val updates = hashMapOf<String, Any>(
+            "title" to title,
+            "review" to review,
+            "rating" to rating
+        )
+        
+        // Handle image removal specifically
+        if (shouldRemoveImage) {
+            updates["imageUrl"] = ""
+        }
+        
+        repository.updatePost(postId, updates, newImageUri, shouldRemoveImage)
+            .addOnSuccessListener {
+                _isLoading.postValue(false)
+                _editPostResult.postValue(true)
+            }
+            .addOnFailureListener {
+                _isLoading.postValue(false)
+                _editPostResult.postValue(false)
+            }
+    }
+
+    fun resetEditPostResult() {
+        _editPostResult.value = null
     }
 }
