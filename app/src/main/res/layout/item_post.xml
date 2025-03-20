@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
-<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+<com.google.android.material.card.MaterialCardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginVertical="8dp"
-    android:layout_marginHorizontal="0dp"
     app:cardCornerRadius="0dp"
     app:cardElevation="1dp"
     app:strokeColor="#EEEEEE"
@@ -16,7 +16,7 @@
         android:layout_height="wrap_content"
         android:padding="16dp">
 
-        <!-- Enhanced User info section -->
+        <!-- User Info Section -->
         <com.google.android.material.imageview.ShapeableImageView
             android:id="@+id/userProfileImage"
             android:layout_width="48dp"
@@ -44,7 +44,7 @@
             app:layout_constraintTop_toTopOf="@id/userProfileImage"
             tools:text="John Doe" />
 
-        <!-- Owner action buttons - replacing the menu button -->
+        <!-- Owner Action buttons -->
         <LinearLayout
             android:id="@+id/ownerActionsContainer"
             android:layout_width="wrap_content"
@@ -75,6 +75,7 @@
                 app:tint="@color/material_on_surface_emphasis_medium" />
         </LinearLayout>
 
+        <!-- Post Timestamp -->
         <TextView
             android:id="@+id/postTimestamp"
             android:layout_width="wrap_content"
@@ -85,7 +86,7 @@
             app:layout_constraintTop_toBottomOf="@id/userName"
             tools:text="March 15, 2025" />
 
-        <!-- Modernized Book info section -->
+        <!-- Book Info Card -->
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/bookInfoCard"
             android:layout_width="match_parent"
@@ -128,31 +129,17 @@
                     app:layout_constraintTop_toTopOf="@id/bookCoverImage"
                     tools:text="The Great Gatsby" />
 
-                <TextView
-                    android:id="@+id/bookAuthor"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
-                    android:ellipsize="end"
-                    android:maxLines="1"
-                    android:textColor="@color/material_on_surface_emphasis_medium"
-                    android:textSize="14sp"
-                    app:layout_constraintEnd_toEndOf="@id/bookTitle"
-                    app:layout_constraintStart_toStartOf="@id/bookTitle"
-                    app:layout_constraintTop_toBottomOf="@id/bookTitle"
-                    tools:text="F. Scott Fitzgerald" />
-
                 <RatingBar
                     android:id="@+id/ratingBar"
                     style="?android:attr/ratingBarStyleSmall"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="12dp"
+                    android:layout_marginTop="8dp"
                     android:isIndicator="true"
                     android:numStars="5"
                     android:progressTint="@color/gold"
                     app:layout_constraintStart_toStartOf="@id/bookTitle"
-                    app:layout_constraintTop_toBottomOf="@id/bookAuthor"
+                    app:layout_constraintTop_toBottomOf="@id/bookTitle"
                     tools:rating="4" />
 
                 <TextView
@@ -167,11 +154,10 @@
                     app:layout_constraintStart_toEndOf="@id/ratingBar"
                     app:layout_constraintTop_toTopOf="@id/ratingBar"
                     tools:text="4.2" />
-
             </androidx.constraintlayout.widget.ConstraintLayout>
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- Enhanced Review section -->
+        <!-- Review Section -->
         <TextView
             android:id="@+id/reviewTitle"
             android:layout_width="match_parent"
@@ -190,43 +176,55 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
+            android:ellipsize="end"
+            android:maxLines="2"
             android:textColor="@color/material_on_surface_emphasis_medium"
             android:textSize="15sp"
             app:layout_constraintTop_toBottomOf="@id/reviewTitle"
             tools:text="This book completely changed my perspective. The characters are deeply developed and the plot is engaging from start to finish." />
 
+        <!-- Hidden post image (will be shown in details) -->
         <ImageView
             android:id="@+id/postImage"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            android:adjustViewBounds="true"
-            android:scaleType="centerCrop"
             android:visibility="gone"
-            app:layout_constraintTop_toBottomOf="@id/reviewText"
-            tools:src="@drawable/placeholder"
-            tools:visibility="visible" />
+            app:layout_constraintTop_toBottomOf="@id/reviewText" />
 
-        <!-- Action buttons - Removed comment button, kept like button -->
+        <!-- Action Buttons -->
         <LinearLayout
             android:id="@+id/actionButtonsContainer"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
             android:orientation="horizontal"
-            app:layout_constraintTop_toBottomOf="@id/postImage">
+            app:layout_constraintTop_toBottomOf="@id/reviewText">
 
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnLike"
-                style="@style/Widget.MaterialComponents.Button.TextButton"
+            <FrameLayout
+                android:id="@+id/likeButtonContainer"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginEnd="8dp"
-                android:text="Like"
-                android:textAllCaps="false"
-                android:textColor="@color/material_on_surface_emphasis_medium"
-                app:icon="@android:drawable/btn_star"
-                app:iconTint="@color/material_on_surface_emphasis_medium" />
+                android:layout_marginEnd="8dp">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnLike"
+                    style="@style/Widget.MaterialComponents.Button.TextButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Like"
+                    android:textAllCaps="false"
+                    android:textColor="@color/material_on_surface_emphasis_medium"
+                    app:icon="@drawable/ic_like_outline"
+                    app:iconTint="@color/like_button_tint_selector" />
+
+                <ProgressBar
+                    android:id="@+id/likeProgressBar"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:layout_gravity="center"
+                    android:indeterminateTint="@color/colorPrimary"
+                    android:visibility="gone" />
+            </FrameLayout>
 
             <View
                 android:layout_width="0dp"
@@ -245,6 +243,5 @@
                 app:backgroundTint="@color/colorPrimary"
                 app:cornerRadius="20dp" />
         </LinearLayout>
-
     </androidx.constraintlayout.widget.ConstraintLayout>
 </com.google.android.material.card.MaterialCardView>

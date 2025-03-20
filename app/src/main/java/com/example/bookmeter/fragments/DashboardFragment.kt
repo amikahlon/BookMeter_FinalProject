@@ -93,7 +93,8 @@ class DashboardFragment : Fragment(), NavigationView.OnNavigationItemSelectedLis
             onDeleteClick = { post -> handlePostDelete(post) },
             onLikeClick = { post -> handlePostLike(post) },
             onPostClick = { post -> navigateToPostDetail(post) },
-            currentUserId = authViewModel.currentUser?.value?.uid
+            currentUserId = authViewModel.currentUser?.value?.uid,
+            postViewModel = postListViewModel
         )
         
         binding.postsRecyclerView.apply {
@@ -223,6 +224,22 @@ class DashboardFragment : Fragment(), NavigationView.OnNavigationItemSelectedLis
                 SnackbarHelper.showError(binding.root, errorMessage)
             }
         }
+
+        // Observe like action result
+        postListViewModel.likeActionResult.observe(viewLifecycleOwner) { (postId, success) ->
+            // Find the post view holder and update loading state
+            val position = postAdapter.currentList.indexOfFirst { it.post.id == postId }
+            if (position != -1) {
+                val viewHolder = binding.postsRecyclerView.findViewHolderForAdapterPosition(position)
+                if (viewHolder is PostAdapter.PostViewHolder) {
+                    viewHolder.showLikeLoading(postId, false)
+                }
+                
+                if (!success) {
+                    SnackbarHelper.showError(binding.root, "Failed to update like")
+                }
+            }
+        }
     }
 
     private fun setupClickListeners() {
@@ -250,8 +267,16 @@ class DashboardFragment : Fragment(), NavigationView.OnNavigationItemSelectedLis
     }
     
     private fun handlePostLike(post: Post) {
-        // TODO: Implement like functionality
-        SnackbarHelper.showInfo(binding.root, "Like feature coming soon!")
+        val currentUserId = authViewModel.currentUser?.value?.uid
+        if (currentUserId == null) {
+            SnackbarHelper.showInfo(binding.root, "You need to be logged in to like posts")
+            return
+        }
+        
+        // No need for manual visual feedback - this will be handled by the adapter
+        
+        // Toggle the like in the database
+        postListViewModel.toggleLike(post.id, currentUserId)
     }
     
     private fun handlePostComment(post: Post) {

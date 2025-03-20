@@ -11,6 +11,7 @@ import com.example.bookmeter.R
 import com.example.bookmeter.databinding.ItemPostBinding
 import com.example.bookmeter.model.Post
 import com.example.bookmeter.model.User
+import com.example.bookmeter.viewmodels.PostListViewModel
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -20,7 +21,8 @@ class PostAdapter(
     private val onDeleteClick: (Post) -> Unit,
     private val onLikeClick: (Post) -> Unit,
     private val onPostClick: (Post) -> Unit,
-    private val currentUserId: String? = null
+    private val currentUserId: String? = null,
+    private val postViewModel: PostListViewModel? = null
 ) : ListAdapter<PostWithUser, PostAdapter.PostViewHolder>(PostDiffCallback()) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): PostViewHolder {
@@ -65,10 +67,24 @@ class PostAdapter(
             binding.btnLike.setOnClickListener {
                 val position = adapterPosition
                 if (position != RecyclerView.NO_POSITION) {
+                    // Show loading state
+                    setLikeLoading(true)
                     onLikeClick(getItem(position).post)
                 }
             }
+        }
 
+        private fun setLikeLoading(isLoading: Boolean) {
+            if (isLoading) {
+                binding.likeProgressBar.visibility = View.VISIBLE
+                binding.btnLike.icon = null
+                binding.btnLike.text = ""
+                binding.btnLike.isEnabled = false
+            } else {
+                binding.likeProgressBar.visibility = View.GONE
+                binding.btnLike.isEnabled = true
+                // The icon and text will be set in the bind method
+            }
         }
 
         fun bind(postWithUser: PostWithUser) {
@@ -118,6 +134,34 @@ class PostAdapter(
             
             // Hide post image in list view as requested
             binding.postImage.visibility = View.GONE
+            
+            // Set like button state - add loading check
+            binding.likeProgressBar.visibility = View.GONE
+            binding.btnLike.isEnabled = true
+            
+            val isLiked = postViewModel?.isPostLikedByUser(post, currentUserId ?: "") ?: false
+            binding.btnLike.isSelected = isLiked
+            binding.btnLike.setIconResource(if (isLiked) R.drawable.ic_like_filled else R.drawable.ic_like_outline)
+            
+            // Format like count text
+            val likeCount = post.likes
+            binding.btnLike.text = when {
+                likeCount == 0 -> "Like"
+                likeCount == 1 -> "1 Like"
+                else -> "$likeCount Likes"
+            }
+        }
+
+        // Show loading state for this specific post
+        fun showLikeLoading(postId: String, isLoading: Boolean) {
+            // Only update if this is the correct post
+            val position = adapterPosition
+            if (position != RecyclerView.NO_POSITION) {
+                val currentPostId = getItem(position).post.id
+                if (currentPostId == postId) {
+                    setLikeLoading(isLoading)
+                }
+            }
         }
         
         private fun formatTimestamp(timestamp: Long): String {

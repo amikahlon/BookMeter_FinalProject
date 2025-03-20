@@ -186,18 +186,29 @@
                 android:orientation="horizontal"
                 app:layout_constraintTop_toBottomOf="@id/postImage">
 
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnLike"
-                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                <FrameLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginEnd="8dp"
-                    android:text="Like"
-                    android:textAllCaps="false"
-                    app:icon="@android:drawable/btn_star" />
+                    android:layout_marginEnd="8dp">
 
-                <!-- Removed comment button -->
-                
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnLike"
+                        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Like"
+                        android:textAllCaps="false"
+                        app:icon="@drawable/ic_like_outline" />
+
+                    <ProgressBar
+                        android:id="@+id/likeProgressBar"
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:layout_gravity="center"
+                        android:indeterminateTint="@color/colorPrimary"
+                        android:visibility="gone" />
+                </FrameLayout>
+
                 <View
                     android:layout_width="0dp"
                     android:layout_height="0dp"

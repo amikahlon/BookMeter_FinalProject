@@ -1,7 +1,7 @@
 package com.example.bookmeter.model
 
 data class Post(
-    val id: String = "",  // Removed @DocumentId annotation
+    val id: String = "",
     val userId: String = "",
     val title: String = "",
     val review: String = "",
@@ -11,6 +11,7 @@ data class Post(
     val bookImageUrl: String = "",
     val imageUrl: String = "",
     val timestamp: Long = System.currentTimeMillis(),
-    val likes: Int = 0,
-    val comments: Int = 0
+    val likes: Int = 0, // Keep for compatibility
+    val comments: Int = 0,
+    val likedBy: List<String> = emptyList() // Array of user IDs who liked the post
 )
