@@ -2,9 +2,8 @@ package com.example.bookmeter.fragments
 
 import android.os.Bundle
 import android.view.*
-import androidx.appcompat.app.ActionBarDrawerToggle
-import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.GravityCompat
+import androidx.activity.OnBackPressedCallback
+import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
@@ -12,8 +11,6 @@ import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.bumptech.glide.Glide
-import com.example.bookmeter.MainActivity
 import com.example.bookmeter.R
 import com.example.bookmeter.databinding.FragmentDashboardBinding
 import com.example.bookmeter.model.Post
@@ -23,15 +20,13 @@ import com.example.bookmeter.utils.LoadingStateManager
 import com.example.bookmeter.utils.SnackbarHelper
 import com.example.bookmeter.viewmodels.AuthViewModel
 import com.example.bookmeter.viewmodels.PostListViewModel
-import com.google.android.material.navigation.NavigationView
 
-class DashboardFragment : Fragment(), NavigationView.OnNavigationItemSelectedListener {
+class DashboardFragment : Fragment() {
     private var _binding: FragmentDashboardBinding? = null
     private val binding get() = _binding!!
     private val authViewModel: AuthViewModel by activityViewModels()
     private val postListViewModel: PostListViewModel by viewModels()
     private val args: DashboardFragmentArgs by navArgs()
-    private lateinit var toggle: ActionBarDrawerToggle
     private lateinit var loadingStateManager: LoadingStateManager
     private lateinit var postAdapter: PostAdapter
 
@@ -53,8 +48,7 @@ class DashboardFragment : Fragment(), NavigationView.OnNavigationItemSelectedLis
         loadingStateManager.init(binding.root, binding.dashboardContentArea.id)
         loadingStateManager.showLoading("Loading your dashboard...")
 
-        setupToolbar()
-        setupNavigationDrawer()
+        setupBackPressHandling()
         setupPostsRecyclerView()
         setupSwipeRefresh()
         setupObservers()
@@ -66,26 +60,21 @@ class DashboardFragment : Fragment(), NavigationView.OnNavigationItemSelectedLis
         }
     }
 
-    private fun setupToolbar() {
-        val activity = requireActivity() as AppCompatActivity
-        activity.setSupportActionBar(binding.toolbar)
-    }
-
-    private fun setupNavigationDrawer() {
-        // Link drawer layout to MainActivity for proper back button handling
-        (activity as? MainActivity)?.setDrawerLayout(binding.drawerLayout)
-        
-        toggle = ActionBarDrawerToggle(
-            requireActivity(),
-            binding.drawerLayout,
-            binding.toolbar,
-            R.string.navigation_drawer_open,
-            R.string.navigation_drawer_close
-        )
-        binding.drawerLayout.addDrawerListener(toggle)
-        toggle.syncState()
-
-        binding.navigationView.setNavigationItemSelectedListener(this)
+    private fun setupBackPressHandling() {
+        // Handle back button to exit app from dashboard
+        requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner, object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                // Show exit confirmation dialog
+                AlertDialog.Builder(requireContext())
+                    .setTitle("Exit App")
+                    .setMessage("Are you sure you want to exit?")
+                    .setPositiveButton("Yes") { _, _ ->
+                        requireActivity().finish()
+                    }
+                    .setNegativeButton("No", null)
+                    .show()
+            }
+        })
     }
     
     private fun setupPostsRecyclerView() {
@@ -151,22 +140,8 @@ class DashboardFragment : Fragment(), NavigationView.OnNavigationItemSelectedLis
         // Observe user data
         authViewModel.user.observe(viewLifecycleOwner) { user ->
             if (user != null) {
-                // Update main content
+                // Update welcome message
                 binding.userNameTextView.text = "Hello, ${user.name}!"
-                
-                // Update nav drawer header
-                val headerView = binding.navigationView.getHeaderView(0)
-                headerView.findViewById<android.widget.TextView>(R.id.navHeaderUsername).text = user.name
-                headerView.findViewById<android.widget.TextView>(R.id.navHeaderEmail).text = user.email
-                
-                val profileImageView = headerView.findViewById<com.google.android.material.imageview.ShapeableImageView>(R.id.navHeaderProfileImage)
-                if (user.profilePictureUrl.isNotEmpty()) {
-                    Glide.with(requireContext())
-                        .load(user.profilePictureUrl)
-                        .placeholder(R.drawable.profile_placeholder)
-                        .error(R.drawable.profile_placeholder)
-                        .into(profileImageView)
-                }
             }
         }
 
@@ -175,11 +150,6 @@ class DashboardFragment : Fragment(), NavigationView.OnNavigationItemSelectedLis
             if (localUser != null && authViewModel.user.value == null) {
                 // Update with minimal data if Firebase data isn't available
                 binding.userNameTextView.text = "Hello, ${localUser.name}!"
-                
-                // Update nav drawer header with minimal data
-                val headerView = binding.navigationView.getHeaderView(0)
-                headerView.findViewById<android.widget.TextView>(R.id.navHeaderUsername).text = localUser.name
-                headerView.findViewById<android.widget.TextView>(R.id.navHeaderEmail).text = ""
             }
             
             // Check authentication status
@@ -257,7 +227,7 @@ class DashboardFragment : Fragment(), NavigationView.OnNavigationItemSelectedLis
 
     private fun handlePostDelete(post: Post) {
         // Show confirmation dialog
-        androidx.appcompat.app.AlertDialog.Builder(requireContext())
+        AlertDialog.Builder(requireContext())
             .setTitle("Delete Post")
             .setMessage("Are you sure you want to delete this post? This action cannot be undone.")
             .setPositiveButton("Delete") { _, _ ->
@@ -304,12 +274,6 @@ class DashboardFragment : Fragment(), NavigationView.OnNavigationItemSelectedLis
         postListViewModel.toggleLike(post.id, currentUserId)
     }
     
-    private fun handlePostComment(post: Post) {
-        // TODO: Implement comment functionality
-        SnackbarHelper.showInfo(binding.root, "Comment feature coming soon!")
-    }
-    
-    
     private fun navigateToPostDetail(post: Post) {
         val action = DashboardFragmentDirections.actionDashboardFragmentToPostDetailFragment(post.id)
         findNavController().navigate(action)
@@ -334,46 +298,8 @@ class DashboardFragment : Fragment(), NavigationView.OnNavigationItemSelectedLis
         }
     }
 
-    override fun onNavigationItemSelected(item: MenuItem): Boolean {
-        when (item.itemId) {
-            R.id.dashboardFragment -> {
-                // We're already on the home screen
-            }
-            R.id.profileFragment -> {
-                findNavController().navigate(R.id.action_dashboardFragment_to_profileFragment)
-            }
-            R.id.addPostFragment -> {
-                findNavController().navigate(R.id.action_dashboardFragment_to_addPostFragment)
-            }
-            R.id.nav_logout -> {
-                // Close drawer immediately
-                binding.drawerLayout.closeDrawer(GravityCompat.START)
-                
-                // Show loading
-                loadingStateManager.showLoading("Logging out...")
-                
-                // Perform logout
-                authViewModel.logout { success, message ->
-                    // Check if fragment is still attached
-                    if (!isAdded || _binding == null) return@logout
-                    
-                    if (!success) {
-                        loadingStateManager.hideLoading()
-                        SnackbarHelper.showError(binding.root, "Logout failed: $message")
-                    }
-                    // Don't navigate here - navigation will be handled automatically
-                }
-                return true
-            }
-        }
-        binding.drawerLayout.closeDrawer(GravityCompat.START)
-        return true
-    }
-
     override fun onDestroyView() {
         super.onDestroyView()
-        // Clear drawer reference when fragment is destroyed
-        (activity as? MainActivity)?.setDrawerLayout(null)
         _binding = null
     }
 }

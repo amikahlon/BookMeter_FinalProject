@@ -62,15 +62,17 @@ class PostRepository {
     
     suspend fun getPostsByUser(userId: String): Result<List<Post>> {
         return try {
+            // Simpler query that doesn't require a composite index
             val snapshot = postsCollection
                 .whereEqualTo("userId", userId)
-                .orderBy("timestamp", com.google.firebase.firestore.Query.Direction.DESCENDING)
                 .get()
                 .await()
                 
+            // We'll sort the results in memory instead of in the query
             val posts = snapshot.documents.mapNotNull { doc ->
                 doc.toObject(Post::class.java)
-            }
+            }.sortedByDescending { it.timestamp }
+            
             Result.success(posts)
         } catch (e: Exception) {
             Result.failure(e)

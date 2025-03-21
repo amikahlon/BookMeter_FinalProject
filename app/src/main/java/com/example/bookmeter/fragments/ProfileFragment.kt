@@ -2,10 +2,8 @@ package com.example.bookmeter.fragments
 
 import android.os.Bundle
 import android.view.LayoutInflater
-import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
-import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
@@ -31,15 +29,11 @@ class ProfileFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View {
         _binding = FragmentProfileBinding.inflate(inflater, container, false)
-        setHasOptionsMenu(true) // Show back button in toolbar
         return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
-        // Setup toolbar with back button
-        setupToolbar()
 
         // Initialize loading state manager
         loadingStateManager = LoadingStateManager(this)
@@ -56,24 +50,6 @@ class ProfileFragment : Fragment() {
         if (args.showSnackbar) {
             SnackbarHelper.showSuccess(binding.root, "Login successful!")
         }
-    }
-    
-    private fun setupToolbar() {
-        // Set up the toolbar with the back button
-        val activity = requireActivity() as AppCompatActivity
-        activity.setSupportActionBar(binding.toolbar)
-        activity.supportActionBar?.setDisplayHomeAsUpEnabled(true)
-        activity.supportActionBar?.setDisplayShowHomeEnabled(true)
-        activity.supportActionBar?.title = getString(R.string.profile)
-    }
-
-    // Handle back button in toolbar
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        if (item.itemId == android.R.id.home) {
-            findNavController().navigateUp()
-            return true
-        }
-        return super.onOptionsItemSelected(item)
     }
 
     private fun checkAuthentication() {

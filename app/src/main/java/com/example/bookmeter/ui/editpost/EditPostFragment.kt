@@ -6,6 +6,7 @@ import android.net.Uri
 import android.os.Bundle
 import android.provider.MediaStore
 import android.view.LayoutInflater
+import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
@@ -64,6 +65,7 @@ class EditPostFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View {
         _binding = FragmentEditPostBinding.inflate(inflater, container, false)
+        setHasOptionsMenu(true)
         return binding.root
     }
 
@@ -71,22 +73,22 @@ class EditPostFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         postViewModel = ViewModelProvider(this)[PostViewModel::class.java]
 
-        setupToolbar()
         setupObservers()
         setupClickListeners()
 
         postViewModel.loadPostForEdit(args.postId)
     }
 
-    private fun setupToolbar() {
-        binding.toolbar.title = "Edit Review"
-        binding.toolbar.setNavigationOnClickListener {
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        if (item.itemId == android.R.id.home) {
             if (hasUserMadeChanges()) {
                 showDiscardChangesDialog()
             } else {
                 findNavController().navigateUp()
             }
+            return true
         }
+        return super.onOptionsItemSelected(item)
     }
 
     private fun hasUserMadeChanges(): Boolean {
