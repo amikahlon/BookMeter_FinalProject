@@ -289,6 +289,21 @@ class DashboardFragment : Fragment() {
         return super.onOptionsItemSelected(item)
     }
 
+    override fun onResume() {
+        super.onResume()
+        
+        // Refresh posts data every time the fragment resumes
+        if (isAdded && _binding != null) {
+            // Show shimmer loading while refreshing if there are no posts visible
+            if (postAdapter.itemCount == 0) {
+                showRecyclerViewLoading(true)
+            }
+            
+            // Refresh the data
+            postListViewModel.refreshPosts()
+        }
+    }
+
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null

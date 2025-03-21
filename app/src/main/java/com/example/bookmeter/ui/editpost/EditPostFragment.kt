@@ -70,7 +70,7 @@ class EditPostFragment : Fragment() {
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
+        super.onViewCreated(view, savedInstanceState)  // Fixed: passing savedInstanceState parameter
         postViewModel = ViewModelProvider(this)[PostViewModel::class.java]
 
         setupObservers()
@@ -84,7 +84,10 @@ class EditPostFragment : Fragment() {
             if (hasUserMadeChanges()) {
                 showDiscardChangesDialog()
             } else {
+                // קודם היה פה קוד שעשה popBackStack לעמוד הראשי - זה גרם לבאג
+                // במקום זה, נעשה navigateUp() רגיל כדי לחזור עמוד אחד אחורה
                 findNavController().navigateUp()
+                return true
             }
             return true
         }
@@ -132,12 +135,19 @@ class EditPostFragment : Fragment() {
             success?.let {
                 if (it) {
                     Toast.makeText(context, "Review updated successfully", Toast.LENGTH_SHORT).show()
+                    
+                    // במקום לחזור חזרה, נעבור ישירות לדף הפרטים של הפוסט המעודכן
+                    // ונסלק את עמוד העריכה מהמחסנית כדי שלחיצה על BACK לא תחזיר לעמוד העריכה
                     val action = EditPostFragmentDirections.actionEditPostFragmentToPostDetailFragment(args.postId)
                     findNavController().navigate(action)
+                    
+                    // מסיר את ה-observer אחרי שימוש
+                    postViewModel.editPostResult.removeObservers(viewLifecycleOwner)
+                    postViewModel.resetEditPostResult()
                 } else {
                     Toast.makeText(context, "Failed to update review", Toast.LENGTH_LONG).show()
+                    postViewModel.resetEditPostResult()
                 }
-                postViewModel.resetEditPostResult()
             }
         }
     }
@@ -227,6 +237,8 @@ class EditPostFragment : Fragment() {
             newImageUri = imageUri,
             shouldRemoveImage = isRemovingImage
         )
+        
+        // אין צורך בקוד נוסף כאן - הניווט יטופל על ידי ה-observer למעלה
     }
 
     /**

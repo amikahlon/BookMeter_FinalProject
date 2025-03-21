@@ -23,11 +23,7 @@
     <item android:title="Books">
         <menu>
             <item
-                android:id="@+id/action_reading_now"
-                android:icon="@drawable/ic_book_reading"
-                android:title="Reading Now" />
-            <item
-                android:id="@+id/action_wish_list"
+                android:id="@+id/wishListFragment"
                 android:icon="@drawable/ic_wishlist"
                 android:title="Wish List" />
         </menu>
@@ -35,10 +31,6 @@
 
     <item android:title="Account">
         <menu>
-            <item
-                android:id="@+id/action_settings"
-                android:icon="@drawable/ic_settings"
-                android:title="Settings" />
             <item
                 android:id="@+id/nav_logout"
                 android:icon="@drawable/ic_logout"
