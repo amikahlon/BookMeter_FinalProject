@@ -41,4 +41,20 @@
         <item name="cornerFamily">rounded</item>
         <item name="cornerSize">8dp</item>
     </style>
+
+    <!-- Style for navigation drawer items -->
+    <style name="NavigationDrawerStyle">
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:listPreferredItemHeightSmall">56dp</item>
+        <item name="android:listPreferredItemPaddingLeft">16dp</item>
+        <item name="android:listPreferredItemPaddingRight">16dp</item>
+    </style>
+    
+    <!-- Text style for navigation drawer items -->
+    <style name="NavigationDrawerTextStyle">
+        <item name="android:textSize">16sp</item>
+        <item name="android:textColor">@color/colorPrimaryDark</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+    </style>
 </resources>

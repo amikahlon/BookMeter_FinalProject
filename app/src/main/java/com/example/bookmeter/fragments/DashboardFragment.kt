@@ -285,16 +285,22 @@ class DashboardFragment : Fragment() {
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        return when (item.itemId) {
-            R.id.action_search -> {
-                SnackbarHelper.showInfo(binding.root, "Search feature coming soon!")
-                true
+        // We've removed the menu item handlers since we removed the buttons
+        return super.onOptionsItemSelected(item)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        
+        // Refresh posts data every time the fragment resumes
+        if (isAdded && _binding != null) {
+            // Show shimmer loading while refreshing if there are no posts visible
+            if (postAdapter.itemCount == 0) {
+                showRecyclerViewLoading(true)
             }
-            R.id.action_add -> {
-                findNavController().navigate(R.id.action_dashboardFragment_to_addPostFragment)
-                true
-            }
-            else -> super.onOptionsItemSelected(item)
+            
+            // Refresh the data
+            postListViewModel.refreshPosts()
         }
     }
 

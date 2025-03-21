@@ -3,6 +3,7 @@ package com.example.bookmeter.ui.adapters
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.appcompat.app.AlertDialog
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
@@ -72,6 +73,20 @@ class PostAdapter(
                     onLikeClick(getItem(position).post)
                 }
             }
+            
+            // New click listener for Add to List button
+            binding.btnAddToList.setOnClickListener {
+                val position = adapterPosition
+                if (position != RecyclerView.NO_POSITION) {
+                    val post = getItem(position).post
+                    // Show alert with book ID
+                    AlertDialog.Builder(binding.root.context)
+                        .setTitle("Add to Reading List")
+                        .setMessage("Book ID: ${post.bookId}")
+                        .setPositiveButton("OK", null)
+                        .show()
+                }
+            }
         }
 
         private fun setLikeLoading(isLoading: Boolean) {
@@ -98,8 +113,11 @@ class PostAdapter(
             // Check if current user is the post owner and show edit/delete buttons accordingly
             if (currentUserId != null && post.userId == currentUserId) {
                 binding.ownerActionsContainer.visibility = View.VISIBLE
+                binding.btnAddToList.visibility = View.GONE  // Hide add button for own posts
             } else {
                 binding.ownerActionsContainer.visibility = View.GONE
+                // Show Add to List button only for posts that are NOT from the current user
+                binding.btnAddToList.visibility = if (currentUserId != null) View.VISIBLE else View.GONE
             }
             
             // Load user profile image

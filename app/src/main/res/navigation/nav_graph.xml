@@ -200,7 +200,7 @@
         <action
             android:id="@+id/action_editPostFragment_to_postDetailFragment"
             app:destination="@id/postDetailFragment"
-            app:popUpTo="@id/postDetailFragment"
+            app:popUpTo="@id/editPostFragment"
             app:popUpToInclusive="true" />
     </fragment>
 
@@ -231,6 +231,15 @@
             app:exitAnim="@anim/nav_default_exit_anim"
             app:popEnterAnim="@anim/nav_default_pop_enter_anim"
             app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+    </fragment>
+
+    <!-- Wish List Screen -->
+    <fragment
+        android:id="@+id/wishListFragment"
+        android:name="com.example.bookmeter.fragments.WishListFragment"
+        android:label="Wish List"
+        tools:layout="@layout/fragment_wish_list">
+        <!-- No specific actions needed at this time -->
     </fragment>
 
     <!-- Global action to My Reviews -->
