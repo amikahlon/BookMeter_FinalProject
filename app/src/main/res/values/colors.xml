@@ -59,4 +59,7 @@
     <color name="colorPrimaryDark">#1565C0</color>
     <color name="gold">#FFD700</color>
 
+    <color name="backgroundLight">#F5F5F5</color>
+
+
 </resources>
