@@ -2,7 +2,7 @@ package com.example.bookmeter.fragments
 
 import android.os.Bundle
 import android.view.*
-import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.widget.Toolbar
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
@@ -40,6 +40,7 @@ class PostDetailFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View {
         _binding = FragmentPostDetailBinding.inflate(inflater, container, false)
+        setHasOptionsMenu(true)
         return binding.root
     }
 
@@ -51,24 +52,10 @@ class PostDetailFragment : Fragment() {
         loadingStateManager.init(binding.root, binding.fragmentPostDetailContent.id)
         loadingStateManager.showLoading("Loading post...")
         
-        setupToolbar()
+        // Remove any toolbar setup code that might be here
+        
         loadPostDetails()
         setupClickListeners()
-    }
-    
-    private fun setupToolbar() {
-        val activity = requireActivity() as AppCompatActivity
-        activity.setSupportActionBar(binding.toolbar)
-        activity.supportActionBar?.setDisplayHomeAsUpEnabled(true)
-        activity.supportActionBar?.setDisplayShowHomeEnabled(true)
-        activity.supportActionBar?.title = "Book Review"
-        
-        // Add back button listener
-        binding.toolbar.setNavigationOnClickListener {
-            findNavController().navigateUp()
-        }
-        
-        setHasOptionsMenu(true)
     }
     
     private fun loadPostDetails() {
@@ -164,29 +151,35 @@ class PostDetailFragment : Fragment() {
         binding.btnShare.setOnClickListener {
             sharePost()
         }
-        
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
         // Change the options menu to show/hide edit/delete buttons based on ownership
         val currentUserId = authViewModel.currentUser?.value?.uid
         currentPost?.let { post ->
             if (post.userId == currentUserId) {
-                // Add toolbar menu items for edit and delete
-                val toolbar = binding.toolbar
-                toolbar.inflateMenu(R.menu.post_detail_owner_menu)
-                
-                toolbar.setOnMenuItemClickListener { menuItem ->
-                    when (menuItem.itemId) {
-                        R.id.action_edit_post -> {
-                            navigateToEditPost(post.id)
-                            true
-                        }
-                        R.id.action_delete_post -> {
-                            showDeleteConfirmation()
-                            true
-                        }
-                        else -> false
-                    }
-                }
+                // Add menu items for edit and delete
+                inflater.inflate(R.menu.post_detail_owner_menu, menu)
             }
+        }
+        super.onCreateOptionsMenu(menu, inflater)
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        return when (item.itemId) {
+            android.R.id.home -> {
+                findNavController().navigateUp()
+                true
+            }
+            R.id.action_edit_post -> {
+                navigateToEditPost(currentPost?.id ?: "")
+                true
+            }
+            R.id.action_delete_post -> {
+                showDeleteConfirmation()
+                true
+            }
+            else -> super.onOptionsItemSelected(item)
         }
     }
 
