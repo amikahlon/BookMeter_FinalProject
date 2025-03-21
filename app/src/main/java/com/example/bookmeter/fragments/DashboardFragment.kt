@@ -285,17 +285,8 @@ class DashboardFragment : Fragment() {
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        return when (item.itemId) {
-            R.id.action_search -> {
-                SnackbarHelper.showInfo(binding.root, "Search feature coming soon!")
-                true
-            }
-            R.id.action_add -> {
-                findNavController().navigate(R.id.action_dashboardFragment_to_addPostFragment)
-                true
-            }
-            else -> super.onOptionsItemSelected(item)
-        }
+        // We've removed the menu item handlers since we removed the buttons
+        return super.onOptionsItemSelected(item)
     }
 
     override fun onDestroyView() {

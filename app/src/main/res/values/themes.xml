@@ -3,5 +3,11 @@
     <style name="Theme.BookMeter" parent="Theme.Material3.DayNight.NoActionBar">
         <!-- Customize Material 3 colors -->
         <item name="colorPrimary">@color/primaryColor</item>
+        
+        <!-- הגדרות מערכת חלונות ושקיפות -->
+        <item name="android:windowDrawsSystemBarBackgrounds">true</item>
+        <item name="android:statusBarColor">@color/colorPrimary</item>
+        <item name="android:navigationBarColor">@android:color/white</item>
+        <item name="android:windowLightNavigationBar" tools:targetApi="o_mr1">true</item>
     </style>
 </resources>

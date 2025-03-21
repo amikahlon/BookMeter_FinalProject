@@ -68,8 +68,7 @@ class EditProfileFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         
-        // Setup toolbar with back button
-        setupToolbar()
+        // הסרנו את setupToolbar() כי אנחנו משתמשים ב-toolbar של ה-MainActivity
         
         // Initialize loading state manager
         loadingStateManager = LoadingStateManager(this)
@@ -79,14 +78,6 @@ class EditProfileFragment : Fragment() {
         
         setupObservers()
         setupClickListeners()
-    }
-    
-    private fun setupToolbar() {
-        val activity = requireActivity() as AppCompatActivity
-        activity.setSupportActionBar(binding.toolbar)
-        activity.supportActionBar?.setDisplayHomeAsUpEnabled(true)
-        activity.supportActionBar?.setDisplayShowHomeEnabled(true)
-        activity.supportActionBar?.title = getString(R.string.edit_profile)
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {

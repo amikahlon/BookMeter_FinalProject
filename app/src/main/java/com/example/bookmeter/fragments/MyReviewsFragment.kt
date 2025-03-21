@@ -121,9 +121,10 @@ class MyReviewsFragment : Fragment() {
                 if (it.isSuccess) {
                     val posts = it.getOrNull() ?: emptyList()
                     
-                    // Convert to PostWithUser objects
+                    // Convert to PostWithUser objects - FIX: Pass the actual user instead of null
                     val postWithUsers = posts.map { post ->
-                        PostWithUser(post, null) // Set user to null, as we're displaying our own posts
+                        // Use the current user from authViewModel instead of null
+                        PostWithUser(post, authViewModel.user.value)
                     }
                     
                     // Submit the list
