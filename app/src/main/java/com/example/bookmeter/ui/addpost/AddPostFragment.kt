@@ -24,6 +24,7 @@ import com.example.bookmeter.model.Book
 import com.example.bookmeter.repository.BookRepository
 import com.example.bookmeter.ui.adapters.BookAdapter
 import com.example.bookmeter.ui.adapters.FormAdapter
+import com.example.bookmeter.utils.LoadingStateManager
 import com.example.bookmeter.utils.PermissionHelper
 import com.example.bookmeter.viewmodels.BookViewModel
 import com.example.bookmeter.viewmodels.BookViewModelFactory
@@ -42,6 +43,7 @@ class AddPostFragment : Fragment() {
     private lateinit var bookViewModel: BookViewModel
     private lateinit var bookAdapter: BookAdapter
     private lateinit var formAdapter: FormAdapter
+    private lateinit var loadingStateManager: LoadingStateManager
     
     private var selectedBook: Book? = null
     private var postImageUri: Uri? = null // For storing selected image URI
@@ -131,6 +133,10 @@ class AddPostFragment : Fragment() {
         // Initialize BookViewModel with its factory
         val bookRepository = BookRepository()
         bookViewModel = ViewModelProvider(this, BookViewModelFactory(bookRepository))[BookViewModel::class.java]
+        
+        // Initialize loading state manager
+        loadingStateManager = LoadingStateManager(this)
+        loadingStateManager.init(binding.root, R.id.formRecyclerView)
         
         setupFormRecyclerView()
         setupObservers()
@@ -413,6 +419,13 @@ class AddPostFragment : Fragment() {
         postViewModel.isLoading.observe(viewLifecycleOwner) { isLoading -> 
             binding.progressBar.visibility = if (isLoading) View.VISIBLE else View.GONE
             binding.btnSubmitPost.isEnabled = !isLoading
+            
+            // Show full-screen loading overlay when submitting
+            if (isLoading) {
+                loadingStateManager.showLoading("Posting your review...")
+            } else {
+                loadingStateManager.hideLoading()
+            }
         }
         
         // Observe post creation result
@@ -477,8 +490,11 @@ class AddPostFragment : Fragment() {
         val bookId = selectedBook?.id ?: "placeholder_${System.currentTimeMillis()}"
         val bookImageUrl = selectedBook?.thumbnail ?: ""
         
-        // Submit the post with animation feedback
+        // Show loading state immediately before starting the submission
+        loadingStateManager.showLoading("Uploading your review...")
         binding.btnSubmitPost.isEnabled = false
+        
+        // Submit the post with animation feedback
         binding.btnSubmitPost.animate()
             .scaleX(0.95f).scaleY(0.95f)
             .setDuration(100)

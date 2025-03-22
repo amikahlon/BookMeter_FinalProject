@@ -40,7 +40,8 @@ class PostDetailFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View {
         _binding = FragmentPostDetailBinding.inflate(inflater, container, false)
-        setHasOptionsMenu(true)
+        // Remove the options menu by setting this to false
+        setHasOptionsMenu(false)
         return binding.root
     }
 
@@ -148,9 +149,9 @@ class PostDetailFragment : Fragment() {
             handleLikeAction()
         }
         
-        binding.btnShare.setOnClickListener {
-            sharePost()
-        }
+        // Remove the Share button click listener
+        // Hide the share button completely
+        binding.btnShare.visibility = View.GONE
         
         // Add click listener for book details button
         binding.btnViewBookDetails.setOnClickListener {
@@ -173,36 +174,18 @@ class PostDetailFragment : Fragment() {
         }
     }
 
-    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
-        // Change the options menu to show/hide edit/delete buttons based on ownership
-        val currentUserId = authViewModel.currentUser?.value?.uid
-        currentPost?.let { post ->
-            if (post.userId == currentUserId) {
-                // Add menu items for edit and delete
-                inflater.inflate(R.menu.post_detail_owner_menu, menu)
-            }
-        }
-        super.onCreateOptionsMenu(menu, inflater)
-    }
-
+    // Modify onOptionsItemSelected to only handle back navigation if needed
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        return when (item.itemId) {
-            android.R.id.home -> {
-                findNavController().navigateUp()
-                true
-            }
-            R.id.action_edit_post -> {
-                navigateToEditPost(currentPost?.id ?: "")
-                true
-            }
-            R.id.action_delete_post -> {
-                showDeleteConfirmation()
-                true
-            }
-            else -> super.onOptionsItemSelected(item)
+        // Only handle the home/back button
+        if (item.itemId == android.R.id.home) {
+            findNavController().navigateUp()
+            return true
         }
+        return super.onOptionsItemSelected(item)
     }
 
+    // Remove methods related to post editing/deleting that were triggered by the menu
+    // (keeping navigateToEditPost for reference in case it's called elsewhere)
     private fun navigateToEditPost(postId: String) {
         val action = PostDetailFragmentDirections.actionPostDetailFragmentToEditPostFragment(postId)
         findNavController().navigate(action)
@@ -257,17 +240,6 @@ class PostDetailFragment : Fragment() {
         )
     }
     
-    private fun showDeleteConfirmation() {
-        androidx.appcompat.app.AlertDialog.Builder(requireContext())
-            .setTitle("Delete Post")
-            .setMessage("Are you sure you want to delete this post? This action cannot be undone.")
-            .setPositiveButton("Delete") { _, _ ->
-                deletePost()
-            }
-            .setNegativeButton("Cancel", null)
-            .show()
-    }
-    
     private fun deletePost() {
         currentPost?.let { post ->
             loadingStateManager.showLoading("Deleting post...")
@@ -282,28 +254,6 @@ class PostDetailFragment : Fragment() {
                     loadingStateManager.hideLoading()
                     SnackbarHelper.showError(binding.root, "Failed to delete post: ${e.message}")
                 }
-        }
-    }
-    
-    private fun sharePost() {
-        currentPost?.let { post ->
-            val shareText = """
-                Check out this book review on BookMeter!
-                
-                "${post.title}" by ${postUser?.name ?: "a BookMeter user"}
-                Book: ${post.bookName}
-                Rating: ${post.rating}/5
-                
-                ${post.review}
-            """.trimIndent()
-            
-            val shareIntent = android.content.Intent().apply {
-                action = android.content.Intent.ACTION_SEND
-                putExtra(android.content.Intent.EXTRA_TEXT, shareText)
-                type = "text/plain"
-            }
-            
-            startActivity(android.content.Intent.createChooser(shareIntent, "Share via"))
         }
     }
     

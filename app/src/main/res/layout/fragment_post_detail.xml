@@ -39,7 +39,6 @@
                     android:textColor="@android:color/black"
                     android:textSize="18sp"
                     android:textStyle="bold"
-                    app:layout_constraintEnd_toStartOf="@id/postOptionsMenu"
                     app:layout_constraintStart_toEndOf="@id/userProfileImage"
                     app:layout_constraintTop_toTopOf="@id/userProfileImage"
                     tools:text="John Doe" />
@@ -53,17 +52,6 @@
                     app:layout_constraintStart_toStartOf="@id/userName"
                     app:layout_constraintTop_toBottomOf="@id/userName"
                     tools:text="April 24, 2023" />
-
-                <ImageView
-                    android:id="@+id/postOptionsMenu"
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
-                    android:background="?attr/selectableItemBackgroundBorderless"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:src="@android:drawable/ic_menu_more"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintTop_toTopOf="parent" />
 
                 <!-- Book info section -->
                 <com.google.android.material.card.MaterialCardView
