@@ -151,6 +151,26 @@ class PostDetailFragment : Fragment() {
         binding.btnShare.setOnClickListener {
             sharePost()
         }
+        
+        // Add click listener for book details button
+        binding.btnViewBookDetails.setOnClickListener {
+            navigateToBookDetails()
+        }
+    }
+    
+    // New method to navigate to book details
+    private fun navigateToBookDetails() {
+        currentPost?.let { post ->
+            // Navigate to book detail fragment with book info
+            val action = PostDetailFragmentDirections.actionPostDetailFragmentToBookDetailFragment(
+                post.bookId,
+                post.bookName,
+                "", // We don't have author in the Post model, will be fetched by BookDetailFragment
+                "", // Description will be fetched by BookDetailFragment
+                post.bookImageUrl
+            )
+            findNavController().navigate(action)
+        }
     }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {

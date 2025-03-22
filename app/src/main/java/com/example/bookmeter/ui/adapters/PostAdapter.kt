@@ -1,5 +1,6 @@
 package com.example.bookmeter.ui.adapters
 
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -193,13 +194,24 @@ class PostAdapter(
         private fun addToWishlist(bookId: String) {
             val currentUser = FirebaseAuth.getInstance().currentUser
             if (currentUser != null) {
+                // Log the bookId we're adding to wishlist for debugging
+                Log.d("PostAdapter", "Adding book to wishlist: $bookId")
+                
+                // Before adding to Firebase, verify it's not empty or malformed
+                if (bookId.isBlank()) {
+                    Snackbar.make(binding.root, "Invalid book ID", Snackbar.LENGTH_SHORT).show()
+                    return
+                }
+                
                 val userRef = FirebaseFirestore.getInstance().collection("users").document(currentUser.uid)
                 userRef.update("wishlistBooks", FieldValue.arrayUnion(bookId))
                     .addOnSuccessListener {
                         binding.btnAddToList.text = "Already in Wishlist"
                         binding.btnAddToList.isEnabled = false
+                        Snackbar.make(binding.root, "Book added to wishlist", Snackbar.LENGTH_SHORT).show()
                     }
                     .addOnFailureListener { e ->
+                        Log.e("PostAdapter", "Failed to add to wishlist: ${e.message}", e)
                         Snackbar.make(binding.root, "Failed to add to wishlist: ${e.message}", Snackbar.LENGTH_LONG).show()
                     }
             } else {

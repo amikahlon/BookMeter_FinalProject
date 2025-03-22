@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <!-- Removed the custom AppBarLayout to use only the default app bar -->
+
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:fadeScrollbars="false"
+        android:scrollbarStyle="outsideOverlay"
+        android:scrollbars="vertical">
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="16dp">
+
+            <com.google.android.material.imageview.ShapeableImageView
+                android:id="@+id/bookCoverImage"
+                android:layout_width="140dp"
+                android:layout_height="200dp"
+                android:scaleType="centerCrop"
+                android:layout_marginTop="16dp"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:shapeAppearanceOverlay="@style/roundedCornerImageView"
+                app:strokeColor="#DDDDDD"
+                app:strokeWidth="1dp"
+                tools:src="@drawable/ic_book_placeholder" />
+
+            <TextView
+                android:id="@+id/tvBookTitle"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:textSize="22sp"
+                android:textStyle="bold"
+                android:textColor="@color/material_on_surface_emphasis_high_type"
+                app:layout_constraintStart_toEndOf="@id/bookCoverImage"
+                app:layout_constraintTop_toTopOf="@id/bookCoverImage"
+                app:layout_constraintEnd_toEndOf="parent"
+                tools:text="Book Title" />
+
+            <TextView
+                android:id="@+id/tvAuthor"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:textSize="16sp"
+                android:textStyle="italic"
+                android:textColor="@color/material_on_surface_emphasis_medium"
+                app:layout_constraintStart_toStartOf="@id/tvBookTitle"
+                app:layout_constraintTop_toBottomOf="@id/tvBookTitle"
+                app:layout_constraintEnd_toEndOf="parent"
+                tools:text="Author Name" />
+
+            <TextView
+                android:id="@+id/descriptionLabel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:text="Description"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:textColor="@color/material_on_surface_emphasis_high_type"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/bookCoverImage" />
+
+            <TextView
+                android:id="@+id/tvReadingTime"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="14sp"
+                android:textColor="@color/material_on_surface_emphasis_medium"
+                android:textStyle="italic"
+                android:visibility="gone"
+                tools:text="Estimated reading time: 3 min"
+                tools:visibility="visible"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="@id/descriptionLabel"
+                app:layout_constraintBottom_toBottomOf="@id/descriptionLabel" />
+
+            <View
+                android:id="@+id/divider"
+                android:layout_width="0dp"
+                android:layout_height="1dp"
+                android:layout_marginTop="8dp"
+                android:background="?android:attr/listDivider"
+                android:alpha="0.5"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/descriptionLabel" />
+
+            <TextView
+                android:id="@+id/tvDescription"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:textSize="16sp"
+                android:lineSpacingMultiplier="1.5"
+                android:textColor="@color/material_on_surface_emphasis_medium"
+                android:textIsSelectable="true"
+                android:justificationMode="inter_word"
+                android:paddingBottom="16dp"
+                android:autoLink="web"
+                android:breakStrategy="high_quality"
+                android:hyphenationFrequency="full"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/divider"
+                app:layout_constraintEnd_toEndOf="parent"
+                tools:text="Description!" />
+
+            <!-- Removed the btnOpenGoogleBooks and btnAddToReadingList buttons -->
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+    </androidx.core.widget.NestedScrollView>
+
+    <FrameLayout
+        android:id="@+id/loadingOverlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#80000000"
+        android:visibility="gone">
+
+        <ProgressBar
+            android:layout_width="56dp"
+            android:layout_height="56dp"
+            android:layout_gravity="center"/>
+    </FrameLayout>
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

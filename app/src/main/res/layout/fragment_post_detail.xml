@@ -113,6 +113,18 @@
                             app:layout_constraintStart_toStartOf="@id/bookTitle"
                             app:layout_constraintTop_toBottomOf="@id/bookTitle"
                             tools:text="F. Scott Fitzgerald" />
+                            
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnViewBookDetails"
+                            style="@style/Widget.MaterialComponents.Button.TextButton"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:text="View Details"
+                            android:textAllCaps="false"
+                            app:icon="@android:drawable/ic_menu_info_details"
+                            app:layout_constraintStart_toStartOf="@id/bookAuthor"
+                            app:layout_constraintTop_toBottomOf="@id/bookAuthor" />
 
                     </androidx.constraintlayout.widget.ConstraintLayout>
                 </com.google.android.material.card.MaterialCardView>

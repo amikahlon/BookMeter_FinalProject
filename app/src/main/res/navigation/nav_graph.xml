@@ -186,6 +186,13 @@
             app:exitAnim="@anim/nav_default_exit_anim"
             app:popEnterAnim="@anim/nav_default_pop_enter_anim"
             app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+        <action
+            android:id="@+id/action_postDetailFragment_to_bookDetailFragment"
+            app:destination="@id/bookDetailFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
     </fragment>
 
     <!-- Edit Post Fragment -->
@@ -239,7 +246,36 @@
         android:name="com.example.bookmeter.fragments.WishListFragment"
         android:label="Wish List"
         tools:layout="@layout/fragment_wish_list">
-        <!-- No specific actions needed at this time -->
+        <action
+            android:id="@+id/actionWishListFragmentToBookDetailFragment"
+            app:destination="@id/bookDetailFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+    </fragment>
+
+    <!-- Book Detail Screen -->
+    <fragment
+        android:id="@+id/bookDetailFragment"
+        android:name="com.example.bookmeter.fragments.BookDetailFragment"
+        android:label="Book Details"
+        tools:layout="@layout/fragment_book_detail">
+        <argument
+            android:name="bookId"
+            app:argType="string" />
+        <argument
+            android:name="bookTitle"
+            app:argType="string" />
+        <argument
+            android:name="author"
+            app:argType="string" />
+        <argument
+            android:name="description"
+            app:argType="string" />
+        <argument
+            android:name="imageUrl"
+            app:argType="string" />
     </fragment>
 
     <!-- Global action to My Reviews -->
