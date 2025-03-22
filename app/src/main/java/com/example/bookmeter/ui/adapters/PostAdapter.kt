@@ -13,6 +13,10 @@ import com.example.bookmeter.databinding.ItemPostBinding
 import com.example.bookmeter.model.Post
 import com.example.bookmeter.model.User
 import com.example.bookmeter.viewmodels.PostListViewModel
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FieldValue
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.android.material.snackbar.Snackbar
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -74,17 +78,12 @@ class PostAdapter(
                 }
             }
             
-            // New click listener for Add to List button
+            // Updated click listener for Add to List button
             binding.btnAddToList.setOnClickListener {
                 val position = adapterPosition
                 if (position != RecyclerView.NO_POSITION) {
                     val post = getItem(position).post
-                    // Show alert with book ID
-                    AlertDialog.Builder(binding.root.context)
-                        .setTitle("Add to Reading List")
-                        .setMessage("Book ID: ${post.bookId}")
-                        .setPositiveButton("OK", null)
-                        .show()
+                    addToWishlist(post.bookId)
                 }
             }
         }
@@ -168,6 +167,9 @@ class PostAdapter(
                 likeCount == 1 -> "1 Like"
                 else -> "$likeCount Likes"
             }
+
+            // Check if the book is already in the user's wishlist
+            checkIfInWishlist(post.bookId)
         }
 
         // Show loading state for this specific post
@@ -186,6 +188,44 @@ class PostAdapter(
             val date = Date(timestamp)
             val format = SimpleDateFormat("MMM d, yyyy", Locale.getDefault())
             return format.format(date)
+        }
+
+        private fun addToWishlist(bookId: String) {
+            val currentUser = FirebaseAuth.getInstance().currentUser
+            if (currentUser != null) {
+                val userRef = FirebaseFirestore.getInstance().collection("users").document(currentUser.uid)
+                userRef.update("wishlistBooks", FieldValue.arrayUnion(bookId))
+                    .addOnSuccessListener {
+                        binding.btnAddToList.text = "Already in Wishlist"
+                        binding.btnAddToList.isEnabled = false
+                    }
+                    .addOnFailureListener { e ->
+                        Snackbar.make(binding.root, "Failed to add to wishlist: ${e.message}", Snackbar.LENGTH_LONG).show()
+                    }
+            } else {
+                Snackbar.make(binding.root, "You need to be logged in to add to wishlist", Snackbar.LENGTH_LONG).show()
+            }
+        }
+
+        private fun checkIfInWishlist(bookId: String) {
+            val currentUser = FirebaseAuth.getInstance().currentUser
+            if (currentUser != null) {
+                val userRef = FirebaseFirestore.getInstance().collection("users").document(currentUser.uid)
+                userRef.get()
+                    .addOnSuccessListener { document ->
+                        val wishlistBooks = document.get("wishlistBooks") as? List<String> ?: emptyList()
+                        if (wishlistBooks.contains(bookId)) {
+                            binding.btnAddToList.text = "Already in Wishlist"
+                            binding.btnAddToList.isEnabled = false
+                        } else {
+                            binding.btnAddToList.text = "Add to Wishlist"
+                            binding.btnAddToList.isEnabled = true
+                        }
+                    }
+                    .addOnFailureListener { e ->
+                        Snackbar.make(binding.root, "Failed to check wishlist: ${e.message}", Snackbar.LENGTH_LONG).show()
+                    }
+            }
         }
     }
 

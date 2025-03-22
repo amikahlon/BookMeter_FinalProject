@@ -6,16 +6,19 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.bookmeter.databinding.FragmentWishListBinding
-import com.example.bookmeter.utils.LoadingStateManager
 import com.example.bookmeter.viewmodels.AuthViewModel
+import com.example.bookmeter.ui.adapters.WishlistAdapter
+import com.google.firebase.firestore.FirebaseFirestore
 
 class WishListFragment : Fragment() {
     private var _binding: FragmentWishListBinding? = null
     private val binding get() = _binding!!
     
     private val authViewModel: AuthViewModel by activityViewModels()
-    private lateinit var loadingStateManager: LoadingStateManager
+    private lateinit var wishlistAdapter: WishlistAdapter
+    private val db = FirebaseFirestore.getInstance()
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -29,12 +32,44 @@ class WishListFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         
-        // Initialize loading state manager
-        loadingStateManager = LoadingStateManager(this)
-        loadingStateManager.init(binding.root, binding.wishListContentArea.id)
-        
-        // This is a placeholder for future implementation
-        // No actual logic needs to be implemented yet
+        setupRecyclerView()
+        observeWishlist()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        fetchWishlistFromFirebase()
+    }
+
+    private fun setupRecyclerView() {
+        wishlistAdapter = WishlistAdapter()
+        binding.rvWishlist.apply {
+            layoutManager = LinearLayoutManager(context)
+            adapter = wishlistAdapter
+        }
+    }
+
+    private fun observeWishlist() {
+        authViewModel.user.observe(viewLifecycleOwner) { user ->
+            user?.let {
+                wishlistAdapter.submitList(it.wishlistBooks)
+            }
+        }
+    }
+
+    private fun fetchWishlistFromFirebase() {
+        val currentUser = authViewModel.currentUser.value
+        currentUser?.let { user ->
+            db.collection("users").document(user.uid)
+                .get()
+                .addOnSuccessListener { document ->
+                    val wishlistBooks = document.get("wishlistBooks") as? List<String> ?: emptyList()
+                    wishlistAdapter.submitList(wishlistBooks)
+                }
+                .addOnFailureListener { e ->
+                    // Handle the error
+                }
+        }
     }
 
     override fun onDestroyView() {
