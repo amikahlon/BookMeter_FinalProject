@@ -67,9 +67,7 @@ class EditProfileFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        
-        // הסרנו את setupToolbar() כי אנחנו משתמשים ב-toolbar של ה-MainActivity
-        
+
         // Initialize loading state manager
         loadingStateManager = LoadingStateManager(this)
         loadingStateManager.init(binding.root, R.id.editProfileContent)
