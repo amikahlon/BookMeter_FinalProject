@@ -5,7 +5,7 @@ data class User(
     val name: String = "",
     val email: String = "",
     val profilePictureUrl: String = "",
-    val wishlistBooks: List<String> = listOf(),
+    val wishlistBooks: List<String> = emptyList(),
     val readBooks: List<String> = listOf(),
     val postIds: List<String> = listOf()
 )
